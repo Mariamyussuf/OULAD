@@ -1,0 +1,11 @@
+xgboost
+shap
+pandas
+scikit-learn
+streamlit
+streamlit-shap
+matplotlib
+requests
+imbalanced-learn
+Pillow
+numpy

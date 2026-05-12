@@ -1,0 +1,17 @@
+--- Academic Performance Report: XAPI ---
+
+5-Fold Cross Validation (ACCURACY): 0.7811 +/- 0.0185
+
+Class Distribution Before SMOTE: {0: 101, 1: 169, 2: 114}
+Class Distribution After SMOTE:  {0: 169, 1: 169, 2: 169}
+
+Test Set Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.89      0.92      0.91        26
+           1       0.77      0.81      0.79        42
+           2       0.80      0.71      0.75        28
+
+    accuracy                           0.81        96
+   macro avg       0.82      0.82      0.82        96
+weighted avg       0.81      0.81      0.81        96

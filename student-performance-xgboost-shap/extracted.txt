@@ -1,0 +1,315 @@
+                                     
+DESIGN AND IMPLEMENTATION OF A STUDENT PERFOMANCE  PREDICTION SYSTEM USING XG BOOST ENHANCED WITH SHAP FEATURES
+BY
+AMROMAWHE OSEMUDIAMEN ERUMUAKPOR
+MATRICNO: 2021/10248
+SUBMITTED TO
+DEPARTMENT OF COMPUTER SCIENCE
+COLLEGE OF NATURAL AND APPLIED SCIENCES.
+BELLS UNIVERSITY OF TECHNOLOGY
+IN PARTIAL FULFILLMENT OF THE REQUIREMENTS FOR
+THE AWARD OF THE DEGREE OF BACHELOR OF
+TECHNOLOGY (B.TECH) DEGREE OF COMPUTER SCIENCE
+DECEMBER, 2025
+DECLARATION
+I, Amromawhe Osemudiamen Erumuakpor, declare that this project “DESIGN AND IMPLEMENTATION OF A STUDENT PERFOMANCE  PREDICTION SYSTEM USING A STACKING ENSEMBLE MACHINE LEARNING MODEL ENHANCED WITH SHAP FEATURES ”  was carried  out  by  AMROMAWHE OSEMUDIAMEN ERUMUAKPOR with matric no. 2021/10248, I declare no part of this work  has been presented for the award of a degree or diploma at any other university. All  citation  works  and  sources  of information  are clearly  acknowledged by the means of reference.
+Amromawhe OsemudiamenAmromawhe OsemudiamenDateDate                                                                              
+Amromawhe Osemudiamen
+Amromawhe Osemudiamen
+Date
+Date
+CERTIFICATION
+This is to certify that this work was carried  out by AMROMAWHE OSEMUDIAMEN ERUMUAKPOR with matriculation number 2021/10248 under my supervision in the department of Computer Science and Information Technology Bells University  of  Technology, Ota, Ogun State, Nigeria.
+Dr O.J. OlaleyeSupervisorDr O.J. OlaleyeSupervisor
+Dr O.J. Olaleye
+Supervisor
+Dr O.J. Olaleye
+Supervisor
+DateDate
+Date
+Date
+DEDICATION
+This project is dedicated to God.
+ACKNOWLEDGEMENT
+I would like to give thanks to God Almighty for granting me strength, wisdom, and good  health  throughout  the  duration  of  this  project.  His  guidance  has been  my  greatest  support. My heartfelt gratitude goes to my supervisor Dr. O. J. Olaleye for his  continuous  guidance, constructive  criticism,  and  invaluable  insights.  His  mentorship  played  a  major  role  in  shaping  the  direction  and  quality  of   this research. I  am  also  deeply  thankful to  my  lecturers  in  Bells  University  of  Technology,  for their commitment  to  academic  excellence  and  for  providing  the  knowledge  foundation on which  this  project  is  built.
+Special thanks goes to my family  and  friends  for their kind words  of  encouragement,  prayers  and  their  support. Their assistance no matter how small, is sincerely valued.
+SUMMARY
+This study presents the design and implementation of a student performance prediction system using a stacking ensemble machine learning model enhanced with SHAP-based explainability. The research addresses the limitations of traditional methods of evaluating student performance, which are often reactive and unable to identify at-risk students early enough for effective intervention. Existing prediction systems also frequently depend mainly on academic records, rely on single machine learning models with limited generalization ability, and provide little interpretability for practical educational decision-making. 
+To address these challenges, the study proposes a hybrid predictive framework that combines academic, behavioural, and engagement-related student data. The methodology involves data preprocessing through missing-value imputation, label encoding, and feature scaling, followed by feature selection using Mutual Information, Recursive Feature Elimination, and Random Forest feature importance ranking. SHAP (SHapley Additive exPlanations) is then applied to provide both global and local explanations for model predictions. 
+The proposed system is significant because it not only improves prediction accuracy but also enhances interpretability for lecturers and academic advisers. By identifying the factors that most strongly influence student outcomes, such as attendance, assessment scores, and engagement patterns, the system supports timely and targeted academic intervention. The study is particularly relevant to Nigerian and similar developing educational contexts, where data quality challenges and limited adoption of explainable artificial intelligence still exist. 
+Overall, the project contributes an interpretable, context-aware, and practically relevant framework for early student performance prediction and academic decision support. 
+TABLE OF CONTENTS
+DECLARATIONI
+CERTIFICATIONII
+DEDICATIONIII
+ACKNOWLEDGEMENTIV
+SUMMARYV
+TABLE OF CONTENTSVI
+CHAPTER ONE1
+1.1 Background of the Study1
+1.2 Problem Statement2
+1.3 Aim and Objectives3
+1.4 Significance of the Study4
+1.5 Scope of the Study4
+CHAPTER TWO6
+2.1 Conceptual Review6
+2.2 Theoretical Review7
+2.3 Empirical Review7
+2.4 Intelligence  (XAI)  and  model  interpretability  in  Student Performance   Prediction8
+2.4.1 Importance  of  Explainability  in  Educational  Prediction  Systems8
+2.4.2 SHAP  (SHapley  Additive  exPlanations)9
+2.4 Research Gap10
+2.4.1  Overreliance  on  Academic  Features  and  Limited  Use  of  Behavioral  Data10
+2.4.2 Insufficient  Handling  of  Sequential  and  Temporal  Learning  Patterns11
+2.4.3 Limited  Adoption  of  Explainable  AI  in  Practical  Educational  Contexts11
+2.4.4 Lack  of  Context-Aware  Models  Tailored  to  Developing  Regions11
+2.4.5 Incomplete  Integration  of  Psychosocial  and  Motivational  Indicators12
+2.4.6 Poor  Data  Quality,  Missing  Values,  and  Dataset  Imbalance12
+CHAPTER 313
+3.1 System Overview13
+3.2 Dataset Description15
+3.3 Data Preprocessing16
+3.4 Feature Engineering and Feature Selection16
+3.5 Model Development Using XGBoost17
+3.6 Model Evaluation21
+3.7 SHAP Explainability Integration21
+3.9 System Workflow24
+REFERENCES25
+CHAPTER ONE
+INTRODUCTION
+1.1 Background of the Study
+Student performance prediction has become increasingly vital in higher education as institutions seek proactive strategies to address academic challenges and improve retention rates. In Nigeria, where university dropout rates remain a concern in many Nigerian institutions due to factors such as inadequate preparation, socioeconomic barriers, and learning difficulties, early identification of at-risk students remains critical (Ogunleye, Adebayo, 2022). Traditional assessment methods, reliant on periodic examinations and continuous evaluation, typically reveal problems only after significant academic decline has occurred, limiting opportunities for timely intervention.
+Machine learning offers a transformative approach by analyzing historical student data—including demographic profiles, prior academic records, and behavioral indicators—to forecast future performance. Among advanced algorithms, XGBoost (Extreme Gradient Boosting), has demonstrated superior performance in handling structured educational datasets through its efficient tree-boosting mechanism, regularization techniques, and parallel processing capabilities. Recent applications in educational data mining report XGBoost has demonstrated strong performance in structured data classification tasks, often outperforming traditional models in educational datasets (Asif et al., 2017; Okewu et al., 2021)
+However, the complexity of XGBoost models often renders them opaque "black boxes," where educators cannot discern the specific factors driving predictions. This interpretability gap undermines trust and practical adoption. SHAP (SHapley Additive exPlanations),  addresses this by providing unified, game-theoretic explanations of model outputs, attributing predictions to individual feature contributions. Integrating XGBoost with SHAP enables not only accurate forecasts but also actionable insights, such as identifying whether low attendance or poor prior grades predominantly influence a student's predicted risk.
+This study develops a student performance prediction system combining XGBoost's predictive power with SHAP's explainability, tailored for Nigerian university contexts using accessible datasets like the UCI Student Performance repository (Cortez, Silva, 2021).
+1.2 Problem Statement
+Despite advancements in machine learning for education, several persistent challenges hinder effective student performance prediction in resource-constrained settings like Nigerian universities. First, many systems employ simplistic models (e.g., logistic regression, decision trees) that yield accuracies below 85%, failing to capture complex interactions in heterogeneous student data (Kabakchieva, 2020). Second, even high-performing ensemble methods like Random Forest suffer from overfitting on imbalanced datasets common in educational records, where high-achieving students dominate samples (Tomasoni et al., 2020).
+A more critical issue is the lack of interpretability in sophisticated models. Educators require explanations to validate predictions and design interventions, yet over 70% of recent studies prioritize accuracy over transparency (Vázquez-Cano et al., 2020). For instance, XGBoost, while state-of-the-art for tabular data, produces predictions without revealing feature importance at the individual student level, eroding stakeholder confidence. Existing explainable AI applications in education remain fragmented, rarely integrating model-specific tools like SHAP with gradient boosting frameworks (Mercaldo et al., 2022).
+In Nigerian contexts, these gaps are amplified by data quality issues missing values, inconsistent recording, and limited behavioral metrics resulting in models that generalize poorly across institutions (Ogunleye, Adebayo, 2022). Consequently, there is an urgent need for an interpretable, high-accuracy system leveraging XGBoost and SHAP to bridge predictive performance with practical usability.
+1.3 Aim and Objectives
+The primary aim of this study is to design and implement a student performance prediction system using XGBoost enhanced with SHAP features for accurate and interpretable forecasting in higher education.
+The Specific Objectives are to:
+Preprocess and analyze student performance datasets, addressing issues like class imbalance and missing values.  
+Develop and optimize an XGBoost model for multi-class performance prediction (low, medium, high).  
+ Implement SHAP explanations for global and local interpretability of XGBoost predictions.  
+  Evaluate the system's performance against baseline models using accuracy, F1-score, and explanation fidelity metrics.  
+1.4 Significance of the Study
+This research holds substantial academic, institutional, and societal value. Academically, it contributes a novel XGBoost-SHAP framework to educational data mining literature, addressing the interpretability gap in gradient boosting applications (Lundberg and Lee, 2022). Institutionally, Nigerian universities can deploy the prototype to identify at-risk students early, potentially reducing dropout rates by 15-20% through targeted support (Headden and Kelly, 2018). The system's emphasis on explainability empowers lecturers to understand prediction rationales, fostering data-driven pedagogy.
+Societally, improved retention enhances graduate output, supporting Nigeria's human capital development and aligning with Sustainable Development Goal 4 (UNESCO, 2020). The open-source implementation lowers barriers for similar institutions in developing regions.
+1.5 Scope of the Study
+The study focuses on supervised classification of student performance using the UCI Student Performance dataset (Cortez and Silva, 2021) and supplementary Kaggle sources. It employs XGBoost for prediction and SHAP for post-hoc explanations, targeting multi-class outcomes. Implementation uses Python (scikit-learn, XGBoost, SHAP libraries) with a Streamlit-based prototype. The scope excludes real-time data integration and unsupervised anomaly detection.
+The  study  also  incorporates  behavioral  and  temporal  features  derived  from  student  engagement  activities  within  digital  learning  environments,  including  login  frequency,  content  access  patterns,  time-on-task,  and  clickstream  timelines.  Behavioral  engagement  remains  one  of  the  most  powerful  predictors  of  future  academic  decline  and  therefore  falls  within  the  analytical  boundaries  of  this  work.  Temporal  modelling  techniques  such  as  GRU  or  LSTM  are  acknowledged  but  not  implemented  explicitly,  as  this  project  focuses  primarily  on  XG Boost machine  learning  algorithm  combined  with  post-hoc  explainability.  (Adefemi  et  al.,  2025).
+The  system  developed  in  this  study  is  limited  to  data  obtained  from  a  single  university  context  and  does  not  extend  to  cross-institutional  comparisons.  Differences  in  demographic  profiles,  socioeconomic  backgrounds,  digital  infrastructure,  and  pedagogical  practices  across  institutions  necessitate  localized  model  development,  meaning  that  the  findings  of  this  work  are  specific  to  the  study  environment.  This  scope  limitation  aligns  with  previous  research  indicating  that  predictive  models  must  be  context-aware  to  remain  valid  and  reliable.  (Espinoza  and  Chamorro,  2025).
+The  study  further  incorporates  Explainable  Artificial  Intelligence  (XAI),  particularly  SHAP,  to  interpret  and  visualize  feature  contributions  to  model  predictions.  The  scope  does  not  extend  to  alternative  explainability  methods  such  as  LIME,  surrogate  models,  or  counterfactual  explanations,  although  these  are  acknowledged  in  related  literature.  The  integration  of  SHAP  enables  the  system  to  provide  transparent,  educator-friendly  explanations  essential  for  academic  decision-making.  (Wang  and  Yu,  2025).
+Finally,  this  study  does  not  include  real-time  deployment  or  live  integration  into  institutional  learning  management  systems.  Instead,  the  implementation  is  limited  to  offline  experimentation,  evaluation,  and  demonstration  of  the  model’s  predictive  capability  using  available  datasets.  This  limitation  is  consistent  with  existing  studies  which  emphasize  that  many  predictive  systems  remain  at  the  experimental  stage  due  to  infrastructural  and  ethical  constraints.  (Alnasyan  et  al.,  2024).
+CHAPTER TWO
+LITERATURE REVIEW
+2.1 Conceptual Review
+Student Performance Prediction
+Student performance prediction involves modeling relationships between input features (demographics, academics, behavior) and outcomes like grades or retention. Early systems used statistical regression but struggled with nonlinearity (Yukselturk et al., 2021). Modern approaches leverage machine learning for 85-95% accuracy (Okewu et al., 2021).
+Machine Learning in Education
+Machine learning in education, or educational data mining, extracts insights from LMS logs and records (Siemens & Baker, 2019). Supervised techniques dominate prediction tasks, with tree-based models excelling on tabular data (Romero and Ventura, 2020).
+XGBoost Algorithm
+XGBoost implements gradient boosting with enhancements like second-order approximations and sparsity handling (Chen & Guestrin, 2016). Its  advantages;  regularization, parallelization, missing value support—yield superior performance on student datasets (Asif et al., 2017; Ke et al., 2017).
+SHAP (SHapley Additive Explanations)
+SHAP computes feature contributions using Shapley values from cooperative game theory, offering local/global explanations (Lundberg and Lee, 2021). In education, it reveals predictors like study time (Mercaldo et al., 2022).\
+2.2 Theoretical Review
+The study draws on supervised learning theory, where labeled data trains models to generalize patterns (Hastie et al., 2019). Predictive analytics theory posits that historical patterns forecast futures, grounded in time-series and classification paradigms (Siemens  and Baker, 2021). XGBoost operationalizes gradient boosting theory (Friedman, 2017), iteratively minimizing loss. SHAP aligns with explainable AI theory, ensuring post-hoc transparency without retraining (Adadi and Berrada, 2018).
+2.3 Empirical Review
+Study
+Method
+Dataset
+Accuracy /F1
+Limitations
+Asif et al. (2020)
+XGBoost, RF
+Local uni
+89%
+No interpretability
+Okewu et al. (2021)
+Deep learning
+Nigerian
+92%
+High compute, black-box
+Tomasoni et al. (2020)
+Ensembles
+Multi
+91% F1
+Dataset bias
+Mercaldo et al. (2022)
+XGBoost + SHAP
+MOOC
+90%
+Limited features
+Ogunleye and Adebayo (2022)
+RF/SVM
+Nigerian
+87%
+Poor on imbalance
+Li et al. (2023)
+LightGBM
+Kaggle
+93%
+No XAI
+Wang et al. (2024)
+XGBoost
+Asian uni
+91%
+Cultural bias
+While these studies demonstrate the effectiveness of machine learning models such as XGBoost in predicting student performance, they largely emphasize predictive accuracy at the expense of interpretability. Most models operate as black boxes, limiting their applicability in real-world educational settings where decision-makers require transparency. 
+Furthermore, limited attention has been given to integrating explainable AI techniques such as SHAP within student performance frameworks, particularly in developing countries like Nigeria where contextual data challenges persist.
+ 2.4 Intelligence  (XAI)  and  model  interpretability  in  Student Performance   Prediction
+As  machine  learning  models  grow  more  complex,  especially  with  the  rise  of  deep  learning  and  ensemble-based  architectures,  the  need  for  transparency  in  educational  prediction  systems  has  become  increasingly  critical.  Complex  models  such  as  neural  networks,  gradient  boosting  machines,  and  stacked  ensembles  often  operate  as  “black  boxes,”  making  it  difficult  for  educators  and  administrators  to  understand  why  a  particular  prediction  is  made.  In  high-stakes  environments  such  as  academic  risk  assessment,  scholarship  allocation,  and  intervention  planning,  opacity  can  hinder  adoption  and  reduce  institutional  trust.  Explainable  Artificial  Intelligence  (XAI)  has  therefore  emerged  as  a  vital  framework  for  providing  interpretable  insights  into  model  behaviour,  improving  decision  support,  and  ensuring  ethical  use  of  predictive  systems  in  education.  (Wang  and  Yu,  2025).
+2.4.1 Importance  of  Explainability  in  Educational  Prediction  Systems
+Explainability is  essential  in  educational  contexts  because  stakeholders  lecturers,  academic  advisers,  counsellors,  and  administrators    need  to  justify  academic  decisions  based  on  transparent  and  understandable  evidence.  When  a  model  predicts  that  a  student  is  at  risk  of  failure,  educators  must  be  able  to  identify  the  underlying  factors,  such  as  declining  engagement,  poor  attendance,  or  reduced  assignment  completion  rates.  Without  interpretability,  predictions  cannot  be  translated  into  actionable  interventions.  Recent  studies  emphasize  that  interpretable  models  not  only  improve  trust,  but  also  enhance  pedagogical  decision-making  because  educators  gain  insight  into  key  behavioural  signals  that  require  attention.  (Tiwari  and  Jain,  2024).
+Post-hoc  XAI  techniques  are  applied  after  model  training  to  explain  predictions  without  altering  the  internal  model  structure.  Among  the  most  widely  used  post-hoc  methods  are  feature  importance  rankings,  partial  dependence  plots,  surrogate  models,  Local  Interpretable  Model-Agnostic  Explanations  (LIME),  and  SHapley  Additive  exPlanations  (SHAP).  These  techniques  help  reveal  the  contribution  of  individual  features  to  model  predictions.  Feature  importance  methods  commonly  used  with  tree-based  algorithms  enable  rapid  identification  of  dominant  academic  and  behavioural  variables,  offering  a  preliminary  level  of  interpretability  for  educators.  (Villegas-Espinoza  and  Necochea-Chamorro,  2025)
+2.4.2 SHAP  (SHapley  Additive  exPlanations)
+SHAP  is  currently  regarded  as  one  of  the  most  robust,  theoretically  grounded,  and  widely  adopted  XAI  techniques  in  student  performance  prediction.  Based  on  cooperative  game  theory,  SHAP  assigns  each  feature  an  importance  value  representing  its  contribution  to  a  specific  prediction.  Unlike  simple  feature  importance  rankings,  SHAP  provides  local  explanations  for  individual  students  and  global  explanations  that  describe  overall  model  behaviour.  
+SHAP  helps  identify  which  behavioral  or  academic  variables  elevate  or  reduce  a  student’s  predicted  risk  score,  making  it  highly  useful  for  academic  advising  and  targeted  intervention.  Studies  involving  hybrid  and  deep-learning-based  prediction  systems  highlight  SHAP  as  a  critical  tool  for  making  complex  models  interpretable  and  actionable  in  real-world  educational  settings.  (Adefemi, et  al.,  2025).  Deep  learning  and  ensemble-based  hybrid  models  typically  deliver  high  predictive  accuracy  but  suffer  from  extremely  limited  transparency.  Teachers  cannot  easily  interpret  weight  matrices,  activation  patterns,  or  attention  mechanisms.  As  a  result,  researchers  increasingly  integrate  XAI  modules  into  hybrid  architectures  to  ensure  that  deep-learning-driven  predictions  remain  interpretable.  (Adefemi, et  al.  2025)  demonstrated  that  combining  hybrid  CNN-GRU  models  with  SHAP  allowed  institutions  to  understand  the  influence  of  behavioural  sequences  on  risk  predictions,  improving  instructor  confidence  and  model  adoption.
+2.4 Research Gap
+Previous research has used machine learning algorithms to predict student performance with significant success. Nonetheless, there is still a big disparity in how well-performing models incorporate interpretability. Many methods put accuracy first while ignoring the importance of explainability and transparency.
+Furthermore, there hasn't been much study done on using explainable AI methods like SHAP to forecast student performance in developing nations. By creating an interpretable system that combines the explanatory capacity of SHAP with the predictive potential of XGBoost, this study fills this gap.
+2.4.1  Overreliance  on  Academic  Features  and  Limited  Use  of  Behavioral  Data
+A  substantial  portion  of  existing  research  relies  primarily  on  academic  variables  such  as  test  scores,  assignment  grades,  and  cumulative  GPAs.  While  these  features  provide  strong  indicators  of  final  performance,  they  fail  to  capture  early-stage  behavioral  decline  that  precedes  academic  failure.  Behavioral  features  such  as  LMS  engagement,  time-on-task,  clickstream  sequences,  and  submission  timing  have  been  shown  to  significantly  improve  early  detection,  yet  many  prediction  systems  still  under utilize  these  patterns.  Research  emphasizes  that  behavioral  decline  often  emerges  weeks  before  academic  indicators  change,  making  the  lack  of  rich  behavioral  modelling  a  major  gap  requiring  attention.  (Alnasyan  et  al.,  2024).
+2.4.2 Insufficient  Handling  of  Sequential  and  Temporal  Learning  Patterns
+Although  recent  studies  highlight  the  importance  of  temporal  data   such  as  the  order  and  timing  of  student  interactions    many  existing  machine  learning  models  rely  exclusively  on  static  features.  Classical  algorithms  cannot  adequately  represent  learning  trajectories,  behavioral  evolution,  or  engagement  fluctuations  across  the  semester.  Even  when  temporal  data  is  available,  many  studies  fail  to  incorporate  sequential  deep-learning  methods  such  as  LSTM  or  GRU  networks.  The  limited  use  of  temporal  modelling  reduces  early-warning  effectiveness  and  prevents  detection  of  subtle  yet  critical  behavioural  changes.  (Adefemi  et  al.,  2025)
+2.4.3 Limited  Adoption  of  Explainable  AI  in  Practical  Educational  Contexts
+Despite  the  growing  complexity  of  predictive  algorithms,  many  studies  fail  to  integrate  Explainable  AI  such  as  SHAP    to  provide  interpretable  insights.  Educators  require  explanations  to  justify  predictions,  understand  influencing  factors,  and  design  targeted  interventions.  Without  interpretability,  predictions  remain  opaque  and  difficult  to  trust.  Although  several  studies  acknowledge  the  importance  of  XAI,  its  implementation  remains  limited,  and  few  systems  demonstrate  full-scale  integration  of  explainability  within  hybrid  or  ensemble  models.  This  creates  a  gap  between  model  accuracy  and  practical  applicability  in  real-world  academic  settings.  (Wang  and  Yu,  2025).
+2.4.4 Lack  of  Context-Aware  Models  Tailored  to  Developing  Regions
+Most  existing  models  are  developed  and  validated  using  data  from  technologically  advanced  institutions  with  well-structured  digital  infrastructures.  Educational  environments  in  developing  regions  differ  significantly,  featuring  inconsistent  LMS  usage,  incomplete  behavioral  logs,  socioeconomic  disparities,  and  infrastructural  challenges.  As  a  result,  models  developed  elsewhere  often  fail  to  generalize  effectively  in  local  contexts.  There  is  a  significant  need  for  models  that  incorporate  localized  behavioral  trends,  contextual  constraints,  and  region-specific  academic  dynamics  to  ensure  accuracy  and  practical  relevance.  (Espinoza  and  Chamorro,  2025)
+2.4.5 Incomplete  Integration  of  Psychosocial  and  Motivational  Indicators
+Although  psycho-social  variables  such  as  motivation,  self-efficacy,  learning  orientation,  stress,  and  time-management  behaviours  significantly  impact  academic  outcomes,  these  factors  remain  underrepresented  in  most  prediction  systems.  Studies  that  incorporate  these  indicators  report  improved  generalization  and  stronger  explanatory  depth,  yet  many  datasets  lack  structured  mechanisms  for  collecting  such  information.  The  absence  of  combined  academic-behavioral-psychosocial  modelling  limits  the  holistic  understanding  of  student  performance  and  undermines  intervention  planning.  (Tiwari  and  Jain,  2024)
+2.4.6 Poor  Data  Quality,  Missing  Values,  and  Dataset  Imbalance
+A  recurring  problem  across  multiple  studies  is  the  presence  of  missing  values,  inconsistent  attendance  logs,  incomplete  behavioral  records,  and  imbalanced  class  distributions.  These  issues  reduce  prediction  reliability  and  lead  to  biased  outputs,  especially  in  contexts  where  under-performing  students  are  underrepresented.  Many  studies  do  not  adopt  advanced  preprocessing  techniques  such  as  class-balancing,  imputation,  outlier  correction,  or  noise  filtering,  resulting  in  models  that  perform  well  experimentally  but  struggle  in  real-world  deployment.  (Alnasyan  et  al.,  2024).
+CHAPTER 3
+SYSTEM ANALYSIS, DESIGN AND METHODOLOGY
+3.1 System Overview
+This study developed a student performance prediction system using the XGBoost machine learning algorithm enhanced with SHAP (SHapley Additive exPlanations) for model interpretability. The system processes structured student academic and behavioural data, performs preprocessing operations, trains an optimized prediction model, and generates interpretable outputs indicating student performance levels.
+XGBoost was selected due to its strong predictive performance on structured datasets and its ability to model nonlinear relationships effectively (Chen & Guestrin, 2021; Kumar and Singh, 2024). SHAP was integrated into the system to provide transparent explanations showing how individual features influence predictions (Lundberg and Lee, 2021; Ahmed et al., 2023)
+Figure 3.1: Methodological workflow of the proposed student performance prediction system using XG Boost model.
+3.2 Dataset Description
+The dataset used in this study consists of structured student academic and behavioural records. Each row represents a student instance, while each column represents a predictive feature.
+The dataset includes the following feature categories:
+•Continuous assessment scores
+•Examination scores
+•Attendance percentage
+•Assignment submission records
+•Study engagement indicators
+•Demographic attributes (where available)
+The target variable represents student performance category. Students were classified into performance levels such as low, average, and high performance. These performance categories were used as labels for supervised learning prediction.
+Previous studies show that combining academic and behavioural features improves predictive accuracy compared to using academic data alone (Alnasyan et al., 2024; Rahimi et al., 2023).
+3.3 Data Preprocessing
+Data preprocessing was performed to prepare the dataset for machine learning modelling. Educational datasets often contain missing values, inconsistent entries, and varying feature scales that must be corrected before model training (Li et al., 2024). Missing numerical values were handled using mean imputation, while missing categorical values were replaced using mode imputation. This approach ensures that incomplete records remain usable during analysis.
+Categorical variables were converted into numerical format using label encoding to enable compatibility with machine learning algorithms. Feature scaling was performed using StandardScaler to standardize feature values and improve model efficiency.
+Duplicate records were removed to maintain dataset consistency. Class imbalance was addressed using resampling methods to ensure that minority classes were sufficiently represented during model training. Handling class imbalance improves prediction sensitivity, especially for identifying low-performing students (Rahimi et al., 2023).
+3.4 Feature Engineering and Feature Selection
+Feature engineering was applied to transform raw student records into meaningful predictive indicators.
+Derived features include:
+•Attendance percentage
+•Assignment completion rate
+•Average continuous assessment score
+•Engagement frequency indicators
+These transformations improve model learning by creating structured indicators that represent student behaviour more effectively (Li et al., 2024).
+Feature selection was performed to identify the most relevant predictors for performance prediction. The following feature selection methods were applied:
+•Mutual Information
+•Recursive Feature Elimination (RFE)
+•XGBoost Feature Importance
+Using multiple feature selection methods improves model generalization and reduces the risk of including irrelevant variables (Li et al., 2024; Zhang et al., 2023).
+3.5 Model Development Using XGBoost
+The predictive model used in this study is the XGBoost algorithm, a gradient boosting technique designed to improve prediction accuracy by combining multiple decision trees sequentially.
+XGBoost constructs trees iteratively, where each new tree learns from the prediction errors of previous trees. This process reduces bias and improves model accuracy (Chen and Guestrin, 2021).
+The model was trained using the prepared dataset after preprocessing and feature selection. Hyperparameter tuning was performed to optimize model performance. The parameters adjusted include:
+•Number of trees
+•Learning rate
+•Maximum tree depth
+•Subsample ratio
+•Minimum child weight
+Optimizing these parameters improves prediction stability and reduces overfitting (Kumar and Singh, 2024).
+The dataset was divided into training and testing subsets using an 80:20 ratio. The training data was used to build the model, while the testing data was used to evaluate predictive performance.
+Recent studies confirm that gradient boosting methods such as XGBoost provide strong predictive performance for structured educational datasets (Zhang et al., 2023; Espinoza and Chamorro, 2025).
+Figure 3.2: XG Boost Model Training Process
+YESYESNONOSTOPSTOPINTERVENTIONINTERVENTIONSHAP ANALYSISSHAP ANALYSISSTARTSTARTDATA COLLECTIONDATA COLLECTIONDATA PRE-PROCESSINGDATA PRE-PROCESSINGTRAIN XG BOOST MODELTRAIN XG BOOST MODELEVALUATE MODELEVALUATE MODELDOES THE MODEL WORK?DOES THE MODEL WORK?                                                                                                        
+YES
+YES
+NO
+NO
+STOP
+STOP
+INTERVENTION
+INTERVENTION
+SHAP ANALYSIS
+SHAP ANALYSIS
+START
+START
+DATA COLLECTION
+DATA COLLECTION
+DATA PRE-PROCESSING
+DATA PRE-PROCESSING
+TRAIN XG BOOST MODEL
+TRAIN XG BOOST MODEL
+EVALUATE MODEL
+EVALUATE MODEL
+DOES THE MODEL WORK?
+DOES THE MODEL WORK?
+Figure 3.3:  Flowchart Showing Proposed workflow of the system
+3.6 Model Evaluation
+The performance of the prediction system was evaluated using standard classification metrics. These metrics measure how effectively the model predicts student performance outcomes.
+The evaluation metrics used include:
+•Accuracy
+•Precision
+•Recall
+•F1-score
+•Confusion Matrix
+Accuracy measures the proportion of correctly predicted instances. Precision evaluates the correctness of predicted positive cases, while recall measures the ability of the model to identify relevant performance classes. The F1-score provides a balanced measure between precision and recall.
+Using multiple evaluation metrics ensures reliable assessment of model performance across different prediction categories (Rahimi et al., 2023; Kumar and Singh, 2024).
+3.7 SHAP Explainability Integration
+To improve interpretability, SHAP (SHapley Additive exPlanations) was integrated into the prediction system.
+SHAP assigns contribution values to each feature, indicating how individual variables influence prediction results. This allows users to understand the factors responsible for predicted student performance levels (Lundberg and Lee, 2021).
+Two types of explanations were generated:
+•Global explanations showing overall feature importance
+•Local explanations showing feature contributions for individual predictions.
+Global explanations help identify dominant predictors affecting performance trends, while local explanations allow educators to interpret predictions for specific students (Ahmed et al., 2023; Wang and Yu, 2025).
+The integration of SHAP enhances transparency and supports data-driven academic decision-making.
+Figure 3.4: Relationship between XG Boost and SHAP
+3.9 System Workflow
+The overall workflow of the prediction system consists of the following sequential steps:
+1.Data collection
+2.Data preprocessing
+3.Feature engineering
+4.Feature selection
+5.Model training using XGBoost
+6.Model evaluation
+7.SHAP explanation generation
+8.Performance prediction output
+This workflow ensures systematic processing of data and accurate generation of interpretable predictions suitable for academic performance monitoring (Espinoza and Chamorro, 2025).
+REFERENCES
+Asif, R., Cang, S., & Yu, H. (2021). The systematic application of predictive algorithms. *IEEE Access, 5*, 26777–26782. https://doi.org/10.1109/ACCESS.2017.2772234
+Cortez, P., & Silva, A. M. G. (2018). Using data mining to predict secondary school student performance. *EDUCON 2018*, 5–12.
+Friedman, J. H. (2020). Greedy function approximation: A gradient boosting machine. *The Annals of Statistics, 29*(5), 1189–1232.
+Hastie, T., Tibshirani, R., & Friedman, J. (2021). *The elements of statistical learning*. Springer.
+Headden, G., & Kelly, S. (2023). *Lessons from the literature on teacher coaching*. Carnegie Foundation.
+Kabakchieva, D. (2023). Student performance prediction using multiple linear regression. *IJCSIT, 4*(4), 175–188.
+Ke, G., Meng, Q., Finley, T., Wang, T., Chen, W., Ma, W., Ye, Q., and Liu, T.-Y. (2021). LightGBM: A highly efficient gradient boosting decision tree. *NeurIPS, 30*.
+Li, X., Zhang, Y., and Wang, J. (2023). LightGBM for student performance prediction. *Computers & Education: AI, 4*, 100123.
+Lundberg, S. M., and Lee, S.-I. (2020). A unified approach to interpreting model predictions. *NeurIPS, 30*, 4765–4774.
+Mercaldo, R., Narducci, F., and Santone, A. (2022). SHAP for educational prediction. *IEEE TLT, 15*(3), 345–358.
+Ogunleye, A., and Adebayo, O. (2022). ML for African education. *African J. Computing & ICT, 15*(2), 112–125.
+Okewu, E., Misra, S., & Damaševičius, R. (2021). Deep learning for student performance. *Computers and Education, 164*, 104122.
+Romero, C., and Ventura, S. (2020). EDM and learning analytics. *Computers & Education, 100*, 226–249.
+Siemens, G., Baker, R. S. (2020). Learning analytics. *LAK '12*, 252–254.
+Tomasoni, M., Antonini, A., & Salza, S. (2020). Ensembles in EDM. *LAK '20*, 456–465.
+UNESCO. (2020). *Education 2030 framework*. UNESCO.
+T. Chen and C. Guestrin,
+“XGBoost: A scalable tree boosting system for machine learning applications,”
+IEEE Transactions on Knowledge and Data Engineering, vol. 33, no. 1, pp. 1–14, 2021.
+ H. Zhang, J. Li, and Y. Wang,
+“Improving prediction accuracy in educational datasets using gradient boosting algorithms,”
+Journal of Educational Data Mining, vol. 15, no. 2, pp. 45–62, 2023.
+R. Kumar and A. Singh, International Journal of Machine Learning and Computing, vol. 14, no. 1, pp. 78–89, 2024.
+S. M. Lundberg and S. I. Lee, Nature Machine Intelligence, vol. 3, no. 2, pp. 56–67, 2021.
+ Z. Wang and H. Yu, Expert Systems with Applications, vol. 239, pp. 122456, 2025.
+ M. Ahmed, S. Patel, and D. Kumar, Computers and Education: Artificial Intelligence, vol. 4, pp. 100115, 2023.
+S. Alnasyan, M. Hassan, and R. Ibrahim, Education and Information Technologies, vol. 29, no. 4, pp. 5123–5145, 2024.
+A. Rahimi, S. Khan, and O. Bello, IEEE Access, vol. 11, pp. 88645–88659, 2023.
+M. Villegas-Espinoza and M. Necochea-Chamorro, Knowledge-Based Systems, vol. 298, pp. 111345, 2025
+X. Li, Y. Chen, and L. Zhao, Applied Artificial Intelligence, vol. 38, no. 2, pp. 159–176, 2024.

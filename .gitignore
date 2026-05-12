@@ -1,0 +1,19 @@
+# Data
+student-performance-xgboost-shap/data/studentVle.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env/
+
+# Models
+# (Keep them for now as they are small enough, but usually large models are ignored)
+# student-performance-xgboost-shap/models/*.pkl
+
+# OS
+.DS_Store
+Thumbs.db

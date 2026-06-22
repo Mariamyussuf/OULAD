@@ -130,11 +130,20 @@ python src/train.py
 6. Saves serialized pickle assets (`_model.pkl`, `_explainer.pkl`, `_pipeline.pkl`) and confusion/ROC png figures to `models/`.
 
 ### Step 5: Start the Streamlit Application
-Launch the web interface locally:
-```bash
-streamlit run app.py
-```
-This opens the browser automatically to the local address (typically `http://localhost:8501`). Use the sidebar to toggle between:
+Launch the web interface locally.
+
+- **For Windows (Recommended):**
+  ```powershell
+  python -m streamlit run app.py
+  ```
+  *(Using `python -m` is recommended on Windows to bypass potential script-path environment variable issues).*
+
+- **For macOS/Linux/Git Bash:**
+  ```bash
+  streamlit run app.py
+  ```
+
+This opens your web browser automatically to the local address (typically `http://localhost:8501`). Use the sidebar to toggle between:
 - **Home Page**: System details and project information.
 - **Prediction Engine**: Real-time student profile simulation and SHAP explanations.
 - **Model Analytics**: Accuracy benchmarks and global feature drivers.
@@ -174,9 +183,19 @@ Here is a summary of the baseline performance metrics achieved on the hold-out t
 
 ## 🛠️ Troubleshooting & Support
 
+- **"streamlit : The term 'streamlit' is not recognized..." Error on Windows**:
+  This happens if Streamlit's scripts directory is not added to your Windows environment `Path` variable. To fix this, bypass Windows path lookup by running the script via the Python module flag:
+  ```powershell
+  python -m streamlit run app.py
+  ```
+  Alternatively, verify that your virtual environment is active:
+  ```powershell
+  .\venv\Scripts\activate
+  ```
 - **"Model artifacts not found" error**:
   Ensure you run `python src/train.py` from the root folder first. This writes the essential pickles into `models/`.
 - **Package compilation failure on Windows**:
   If building packages like `lightgbm` or `xgboost` throws C++ compiler exceptions, make sure you have the *Build Tools for Visual Studio* installed or run your terminal inside an Anaconda environment.
 - **Slow SHAP Force Plot loading**:
   Computing SHAP Kernel explanations is computationally intensive. The pipeline implements a $K$-means background summary (size 50) to optimize inference down to 2–5 seconds per run.
+

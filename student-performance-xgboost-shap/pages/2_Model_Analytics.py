@@ -10,7 +10,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 
-st.set_page_config(page_title="Model Analytics — EduPredict", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Model Analytics — EduPredict", page_icon="◈", layout="wide")
 
 # ── Global Design System ──────────────────────────────────────────────────────
 st.markdown("""
@@ -21,11 +21,11 @@ st.markdown("""
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 
 .stApp {
-    background-color: #060818;
+    background-color: #03050f;
     background-image:
-        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.18) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(168,85,247,0.14) 0%, transparent 55%),
-        radial-gradient(ellipse 50% 40% at 55% 50%, rgba(236,72,153,0.08) 0%, transparent 50%);
+        radial-gradient(ellipse 70% 55% at 15% 5%,  rgba(79,70,229,0.22) 0%, transparent 60%),
+        radial-gradient(ellipse 55% 45% at 85% 85%, rgba(139,92,246,0.18) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 35% at 50% 50%, rgba(236,72,153,0.06) 0%, transparent 50%);
     min-height: 100vh;
 }
 
@@ -48,13 +48,15 @@ p { color: #94a3b8; line-height: 1.7; }
 
 /* ── Page header ─────────────────────────── */
 .page-header {
-    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.08));
-    border: 1px solid rgba(99,102,241,0.22);
+    background: linear-gradient(135deg, rgba(79,70,229,0.18) 0%, rgba(124,58,237,0.10) 50%, rgba(6,8,24,0) 100%);
+    border: 1px solid rgba(99,102,241,0.28);
+    border-top: 1px solid rgba(129,140,248,0.4);
     border-radius: 20px;
     padding: 2rem 2.4rem;
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 1px 0 rgba(129,140,248,0.15) inset, 0 20px 60px rgba(79,70,229,0.08);
 }
 .page-header::before {
     content: '';
@@ -92,36 +94,47 @@ p { color: #94a3b8; line-height: 1.7; }
 /* ── Metric cards ─────────────────────────── */
 .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
 .metric-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(8,6,30,0.65);
+    border: 1px solid rgba(255,255,255,0.09);
     border-radius: 18px;
-    padding: 1.6rem 1.4rem;
+    padding: 1.8rem 1.4rem;
     text-align: center;
-    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
     position: relative;
     overflow: hidden;
 }
-.metric-card::before {
+.metric-card::after {
     content: '';
     position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(99,102,241,0.06), transparent);
-    opacity: 0;
-    transition: opacity 0.2s;
+    top: 0; left: 10%; right: 10%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-accent, #818cf8), transparent);
+    opacity: 0.5;
 }
-.metric-card:hover { transform: translateY(-4px); border-color: rgba(99,102,241,0.3); box-shadow: 0 16px 32px rgba(99,102,241,0.1); }
-.metric-card:hover::before { opacity: 1; }
-.metric-icon { font-size: 1.6rem; margin-bottom: 0.6rem; display: block; }
+.metric-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(129,140,248,0.3);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(99,102,241,0.12);
+}
+.metric-card:nth-child(1) { --card-accent: #a5b4fc; }
+.metric-card:nth-child(2) { --card-accent: #34d399; border-color: rgba(52,211,153,0.12); }
+.metric-card:nth-child(3) { --card-accent: #f472b6; border-color: rgba(244,114,182,0.12); }
+.metric-card:nth-child(1) .metric-icon-wrap { color: #a5b4fc; background: rgba(165,180,252,0.08); border-color: rgba(165,180,252,0.18); }
+.metric-card:nth-child(2) .metric-icon-wrap { color: #34d399; background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.18); }
+.metric-card:nth-child(3) .metric-icon-wrap { color: #f472b6; background: rgba(244,114,182,0.08); border-color: rgba(244,114,182,0.18); }
+/* .metric-icon replaced by .metric-icon-wrap (see icon system below) */
 .metric-val {
-    font-size: 2.1rem; font-weight: 800;
-    background: linear-gradient(135deg, #818cf8, #e879f9);
+    font-size: 2.2rem; font-weight: 900;
+    background: linear-gradient(135deg, #c7d2fe, #e879f9);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
-    display: block; line-height: 1.1; margin-bottom: 0.3rem;
+    display: block; line-height: 1.1; margin-bottom: 0.35rem;
     font-family: 'JetBrains Mono', monospace;
+    letter-spacing: -0.03em;
 }
-.metric-label { color: #64748b; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
-.metric-sub   { color: #94a3b8; font-size: 0.8rem; margin-top: 0.35rem; }
+.metric-card:nth-child(2) .metric-val { background: linear-gradient(135deg, #34d399, #6ee7b7); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.metric-card:nth-child(3) .metric-val { background: linear-gradient(135deg, #f472b6, #fb7185); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.metric-label { color: #475569; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.metric-sub   { color: #64748b; font-size: 0.78rem; margin-top: 0.4rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; }
 
 /* ── Section divider ─────────────────────── */
 .section-label {
@@ -144,24 +157,27 @@ p { color: #94a3b8; line-height: 1.7; }
 
 /* ── Report box ──────────────────────────── */
 .report-box {
-    background: rgba(0,0,0,0.4);
-    border: 1px solid rgba(99,102,241,0.15);
+    background: rgba(2,4,16,0.85);
+    border: 1px solid rgba(52,211,153,0.15);
+    border-left: 3px solid rgba(52,211,153,0.5);
     border-radius: 14px;
     padding: 1.4rem 1.6rem;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
-    color: #86efac;
+    font-size: 0.79rem;
+    color: #6ee7b7;
     white-space: pre;
     overflow-x: auto;
-    line-height: 1.7;
+    line-height: 1.75;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
 
 /* ── Image panels ─────────────────────────── */
 .img-panel {
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(8,6,30,0.6);
+    border: 1px solid rgba(99,102,241,0.18);
     border-radius: 18px;
     padding: 1.4rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
 }
 .img-panel-title {
     font-size: 0.72rem;
@@ -175,11 +191,12 @@ p { color: #94a3b8; line-height: 1.7; }
 
 /* ── SHAP panel ──────────────────────────── */
 .shap-global-panel {
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(4,2,20,0.75);
+    border: 1px solid rgba(99,102,241,0.2);
     border-radius: 18px;
     padding: 1.6rem;
     margin-top: 0.5rem;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.35);
 }
 .shap-global-title {
     font-size: 0.68rem;
@@ -199,6 +216,81 @@ p { color: #94a3b8; line-height: 1.7; }
     background: linear-gradient(90deg, rgba(99,102,241,0.3), transparent);
 }
 
+
+/* ── Icon system ─────────────────────────── */
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.icon svg {
+    width: var(--icon-sz, 14px);
+    height: var(--icon-sz, 14px);
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    display: block;
+}
+
+/* ── Section label icon ─────────────────── */
+.section-icon {
+    display: inline-flex; align-items: center;
+    margin-right: 0.55rem;
+}
+.section-icon svg {
+    width: 13px; height: 13px;
+    stroke: #818cf8; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round; fill: none;
+}
+
+/* ── Header tag icon ─────────────────────── */
+.header-icon {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+}
+.header-icon svg {
+    width: 12px; height: 12px;
+    stroke: #818cf8; stroke-width: 2.25;
+    stroke-linecap: round; stroke-linejoin: round; fill: none;
+}
+
+/* ── Tab icon ─────────────────────────────── */
+.tab-icon-wrap { display: inline-flex; align-items: center; gap: 0.45rem; }
+.tab-icon-wrap svg {
+    width: 13px; height: 13px;
+    stroke: currentColor; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round; fill: none;
+    flex-shrink: 0;
+}
+
+/* ── Metric card icon ────────────────────── */
+.metric-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    margin: 0 auto 0.8rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    color: var(--card-accent, #a5b4fc);
+}
+.metric-icon-wrap svg {
+    width: 18px; height: 18px;
+    stroke: currentColor; stroke-width: 1.75;
+    stroke-linecap: round; stroke-linejoin: round; fill: none;
+}
+
+/* ── Gap badge icon ──────────────────────── */
+.gap-badge-icon { display: inline-flex; align-items: center; gap: 0.35rem; }
+.gap-badge-icon svg {
+    width: 11px; height: 11px;
+    stroke: currentColor; stroke-width: 2.25;
+    stroke-linecap: round; stroke-linejoin: round; fill: none;
+}
+
 /* ── Gap score badge ─────────────────────── */
 .gap-badge {
     display: inline-flex; align-items: center; gap: 0.4rem;
@@ -214,10 +306,19 @@ p { color: #94a3b8; line-height: 1.7; }
 
 MODELS_DIR = Path("models")
 
+# ── Inline SVG icon set (stroke-based, inherits currentColor) ─────────────────
+SVG_REFRESH    = "<svg viewBox='0 0 24 24'><polyline points='23 4 23 10 17 10'/><polyline points='1 20 1 14 7 14'/><path d='M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15'/></svg>"
+SVG_TARGET     = "<svg viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2'/></svg>"
+SVG_RULER      = "<svg viewBox='0 0 24 24'><path d='M21.3 8.7L8.7 21.3a1 1 0 0 1-1.4 0l-4.6-4.6a1 1 0 0 1 0-1.4L15.3 2.7a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4z'/><path d='M7.5 10.5l2 2M10.5 7.5l2 2M13.5 4.5l2 2M4.5 13.5l2 2'/></svg>"
+SVG_FILE_TEXT  = "<svg viewBox='0 0 24 24'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/><line x1='16' y1='13' x2='8' y2='13'/><line x1='16' y1='17' x2='8' y2='17'/><polyline points='10 9 9 9 8 9'/></svg>"
+SVG_LINE_CHART = "<svg viewBox='0 0 24 24'><polyline points='22 12 18 12 15 21 9 3 6 12 2 12'/></svg>"
+SVG_BRAIN      = "<svg viewBox='0 0 24 24'><path d='M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.94-3.04A2.5 2.5 0 0 1 9.5 2z'/><path d='M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.94-3.04A2.5 2.5 0 0 0 14.5 2z'/></svg>"
+SVG_TARGET_SM  = "<svg viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2'/></svg>"
+
 # ── Page header ───────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="page-header">
-    <div class="page-header-tag">📊 Evaluation Dashboard</div>
+    <div class="page-header-tag"><span class="header-icon"><svg viewBox='0 0 24 24'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg>Evaluation Dashboard</span></div>
     <h1>Model Analytics</h1>
     <p>5-Fold Cross-Validation · Precision / Recall / F1 · Confusion Matrices ·
        ROC Curves · Global SHAP Feature Importance</p>
@@ -226,11 +327,11 @@ st.markdown("""
 
 # ── Dataset tabs ──────────────────────────────────────────────────────────────
 datasets = [
-    ("UCI — High School",          "uci",     "regression",     "📈", "#34d399", 0.8784, 0.0367, 0.8265),
-    ("xAPI — K-12 Online",         "xapi",    "classification", "🏷️", "#60a5fa", 0.7713, 0.0278, 0.7500),
-    ("UCI Dropout & Success",      "dropout", "classification", "🎓", "#fb923c", 0.0,    0.0,    0.0),
+    ("UCI — High School",          "uci",     "regression",     "REG", "#34d399", 0.8784, 0.0367, 0.8265),
+    ("xAPI — K-12 Online",         "xapi",    "classification", "CLF", "#60a5fa", 0.7713, 0.0278, 0.7500),
+    ("UCI Dropout & Success",      "dropout", "classification", "CLF", "#fb923c", 0.0,    0.0,    0.0),
 ]
-tabs = st.tabs([f"{ico} {name}" for name, _, _, ico, _, _, _, _ in datasets])
+tabs = st.tabs([f"{name}" for name, _, _, _, _, _, _, _ in datasets])
 
 for tab, (name, key, task, ico, colour, cv_known, std_known, test_known) in zip(tabs, datasets):
     with tab:
@@ -275,12 +376,12 @@ for tab, (name, key, task, ico, colour, cv_known, std_known, test_known) in zip(
             gap = acc - cv_score
             gap_sign = "+" if gap >= 0 else ""
             if abs(gap) < 0.03:
-                gap_cls, gap_note = "gap-good", "✅ Minimal gap"
+                gap_cls, gap_icon, gap_note = "gap-good", "<svg viewBox='0 0 24 24'><polyline points='20 6 9 17 4 12'/></svg>", "Minimal gap"
             elif abs(gap) < 0.08:
-                gap_cls, gap_note = "gap-warn", "⚠️ Moderate gap"
+                gap_cls, gap_icon, gap_note = "gap-warn", "<svg viewBox='0 0 24 24'><path d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>", "Moderate gap"
             else:
-                gap_cls, gap_note = "gap-bad",  "❌ Significant gap"
-            gap_html = f'<span class="gap-badge {gap_cls}">{gap_note} ({gap_sign}{gap:.4f})</span>'
+                gap_cls, gap_icon, gap_note = "gap-bad",  "<svg viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/><line x1='15' y1='9' x2='9' y2='15'/><line x1='9' y1='9' x2='15' y2='15'/></svg>", "Significant gap"
+            gap_html = f'<span class="gap-badge {gap_cls}"><span class="gap-badge-icon">{gap_icon}{gap_note} ({gap_sign}{gap:.4f})</span></span>'
 
         # ── Metric cards ───────────────────────────────────────────────────
         cv_disp  = f"{cv_score:.4f}" if cv_score is not None else "—"
@@ -296,19 +397,19 @@ for tab, (name, key, task, ico, colour, cv_known, std_known, test_known) in zip(
         st.markdown(f"""
         <div class="metric-grid">
             <div class="metric-card">
-                <span class="metric-icon">🔄</span>
+                <div class="metric-icon-wrap">{SVG_REFRESH}</div>
                 <span class="metric-val">{cv_disp}</span>
                 <div class="metric-label">5-Fold CV Score</div>
                 <div class="metric-sub">{std_disp}</div>
             </div>
             <div class="metric-card">
-                <span class="metric-icon">🎯</span>
+                <div class="metric-icon-wrap">{SVG_TARGET}</div>
                 <span class="metric-val">{acc_disp}</span>
                 <div class="metric-label">Test {metric_label}</div>
                 {extras if extras else '<div class="metric-sub">Hold-out set</div>'}
             </div>
             <div class="metric-card">
-                <span class="metric-icon">📐</span>
+                <div class="metric-icon-wrap">{SVG_RULER}</div>
                 <span class="metric-val">{f1_disp}</span>
                 <div class="metric-label">Macro F1-Score</div>
                 <div class="metric-sub">All classes avg</div>
@@ -318,7 +419,7 @@ for tab, (name, key, task, ico, colour, cv_known, std_known, test_known) in zip(
         """, unsafe_allow_html=True)
 
         # ── Full report ────────────────────────────────────────────────────
-        st.markdown('<div class="section-label">📋 Full Classification Report</div>', unsafe_allow_html=True)
+        st.markdown(f"<div class='section-label'><span class='section-icon'>{SVG_FILE_TEXT}</span>Full Classification Report</div>", unsafe_allow_html=True)
         st.markdown(f'<div class="report-box">{raw}</div>', unsafe_allow_html=True)
 
         # ── Visual metrics ─────────────────────────────────────────────────
@@ -326,7 +427,7 @@ for tab, (name, key, task, ico, colour, cv_known, std_known, test_known) in zip(
         roc_path = MODELS_DIR / f"{key}_roc.png"
 
         if cm_path.exists() or roc_path.exists():
-            st.markdown('<div class="section-label">📉 Visual Evaluation</div>', unsafe_allow_html=True)
+            st.markdown(f"<div class='section-label'><span class='section-icon'>{SVG_LINE_CHART}</span>Visual Evaluation</div>", unsafe_allow_html=True)
             vcol1, vcol2 = st.columns(2, gap="medium")
             with vcol1:
                 if cm_path.exists():
@@ -344,7 +445,7 @@ for tab, (name, key, task, ico, colour, cv_known, std_known, test_known) in zip(
         pipeline_path  = MODELS_DIR / f"{key}_pipeline.pkl"
 
         if explainer_path.exists() and pipeline_path.exists():
-            st.markdown('<div class="section-label">🧠 Global SHAP Feature Importance</div>', unsafe_allow_html=True)
+            st.markdown(f"<div class='section-label'><span class='section-icon'>{SVG_BRAIN}</span>Global SHAP Feature Importance</div>", unsafe_allow_html=True)
             with st.spinner("Generating global SHAP summary..."):
                 try:
                     with open(explainer_path, "rb") as f: explainer = pickle.load(f)
@@ -365,44 +466,50 @@ for tab, (name, key, task, ico, colour, cv_known, std_known, test_known) in zip(
 
                     # ── Chart ──────────────────────────────────────────────
                     fig, ax = plt.subplots(figsize=(9, 5))
-                    fig.patch.set_facecolor('#0a0d1e')
-                    ax.set_facecolor('#0a0d1e')
+                    BG = '#04021a'
+                    fig.patch.set_facecolor(BG)
+                    ax.set_facecolor(BG)
 
-                    cmap = plt.cm.get_cmap('cool')
                     vals = mean_per_feature[sorted_idx]
                     norm_vals = vals / (vals.max() + 1e-9)
-                    bar_colors = [cmap(v) for v in norm_vals]
+                    # Use a vivid purple→cyan gradient instead of 'cool'
+                    from matplotlib.colors import LinearSegmentedColormap
+                    _cmap = LinearSegmentedColormap.from_list(
+                        'ep', ['#4f46e5', '#818cf8', '#22d3ee'], N=256
+                    )
+                    bar_colors = [_cmap(v) for v in norm_vals]
 
                     bars = ax.barh(
                         [feat_names[i] for i in sorted_idx],
                         vals,
                         color=bar_colors,
-                        height=0.65,
+                        height=0.62,
                         edgecolor='none',
                     )
 
                     # Value labels on bars
                     for bar, v in zip(bars, vals):
                         ax.text(
-                            bar.get_width() + vals.max() * 0.01,
+                            bar.get_width() + vals.max() * 0.012,
                             bar.get_y() + bar.get_height() / 2,
                             f"{v:.4f}", va='center', ha='left',
                             color='#64748b', fontsize=7.5,
                             fontfamily='monospace'
                         )
 
-                    ax.set_xlabel("Mean |SHAP Value|", color='#64748b', fontsize=9, labelpad=8)
-                    ax.set_title(f"Top Feature Drivers — {name}", color='#c7d2fe', fontsize=11, fontweight='bold', pad=14)
-                    ax.tick_params(colors='#94a3b8', labelsize=8.5)
-                    ax.set_xlim(0, vals.max() * 1.18)
+                    ax.set_xlabel("Mean |SHAP Value|", color='#475569', fontsize=8.5, labelpad=8)
+                    ax.set_title(f"Top Feature Drivers — {name}", color='#c7d2fe', fontsize=10.5, fontweight='bold', pad=14)
+                    ax.tick_params(colors='#64748b', labelsize=8)
+                    ax.set_xlim(0, vals.max() * 1.22)
                     for spine in ax.spines.values():
                         spine.set_visible(False)
                     ax.xaxis.set_tick_params(length=0)
                     ax.yaxis.set_tick_params(length=0)
-                    ax.grid(axis='x', color='rgba(255,255,255,0.04)', linewidth=0.8)
-                    plt.tight_layout()
+                    # Fix: matplotlib grid color must be a valid color, not rgba() CSS string
+                    ax.grid(axis='x', color='#1e2040', linewidth=0.8)
+                    plt.tight_layout(pad=0.8)
 
-                    st.markdown('<div class="shap-global-panel"><div class="shap-global-title">🎯 Global SHAP Bar Chart</div>', unsafe_allow_html=True)
+                    st.markdown(f"<div class='shap-global-panel'><div class='shap-global-title'><span class='section-icon'>{SVG_TARGET_SM}</span>Global SHAP Bar Chart</div>", unsafe_allow_html=True)
                     st.pyplot(fig, use_container_width=True)
                     plt.close(fig)
                     st.markdown('</div>', unsafe_allow_html=True)

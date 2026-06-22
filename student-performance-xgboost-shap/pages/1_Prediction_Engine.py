@@ -6,7 +6,7 @@ import numpy as np
 from pathlib import Path
 from streamlit_shap import st_shap
 
-st.set_page_config(page_title="Prediction Engine — EduPredict", page_icon="🤖", layout="wide")
+st.set_page_config(page_title="Prediction Engine — EduPredict", page_icon="⬡", layout="wide")
 
 # ── Global Design System ──────────────────────────────────────────────────────
 st.markdown("""
@@ -17,11 +17,11 @@ st.markdown("""
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 
 .stApp {
-    background-color: #060818;
+    background-color: #03050f;
     background-image:
-        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.18) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(168,85,247,0.14) 0%, transparent 55%),
-        radial-gradient(ellipse 50% 40% at 55% 50%, rgba(236,72,153,0.08) 0%, transparent 50%);
+        radial-gradient(ellipse 70% 55% at 15% 5%,  rgba(79,70,229,0.22) 0%, transparent 60%),
+        radial-gradient(ellipse 55% 45% at 85% 85%, rgba(139,92,246,0.18) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 35% at 50% 50%, rgba(236,72,153,0.06) 0%, transparent 50%);
     min-height: 100vh;
 }
 
@@ -52,13 +52,15 @@ p { color: #94a3b8; line-height: 1.7; }
 
 /* ── Page header ─────────────────────────── */
 .page-header {
-    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.08));
-    border: 1px solid rgba(99,102,241,0.22);
+    background: linear-gradient(135deg, rgba(79,70,229,0.18) 0%, rgba(124,58,237,0.10) 50%, rgba(6,8,24,0) 100%);
+    border: 1px solid rgba(99,102,241,0.28);
+    border-top: 1px solid rgba(129,140,248,0.4);
     border-radius: 20px;
     padding: 2rem 2.4rem;
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 1px 0 rgba(129,140,248,0.15) inset, 0 20px 60px rgba(79,70,229,0.08);
 }
 .page-header::before {
     content: '';
@@ -105,11 +107,12 @@ p { color: #94a3b8; line-height: 1.7; }
 
 /* ── Result card ─────────────────────────── */
 .result-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(160deg, rgba(79,70,229,0.07) 0%, rgba(15,10,40,0.6) 60%);
+    border: 1px solid rgba(99,102,241,0.2);
     border-radius: 20px;
     padding: 1.8rem;
     height: 100%;
+    box-shadow: 0 0 0 0.5px rgba(99,102,241,0.1) inset;
 }
 .result-card-title {
     font-size: 0.68rem;
@@ -132,23 +135,31 @@ p { color: #94a3b8; line-height: 1.7; }
 /* ── Outcome display ─────────────────────── */
 .outcome-display {
     text-align: center;
-    padding: 1.6rem 1rem;
-    border-radius: 16px;
-    margin-bottom: 1.2rem;
+    padding: 2rem 1rem 1.6rem;
+    border-radius: 18px;
+    margin-bottom: 1.4rem;
     position: relative;
     overflow: hidden;
 }
-.outcome-emoji  { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
-.outcome-label  { font-size: 1.5rem; font-weight: 800; display: block; margin-bottom: 0.3rem; }
-.outcome-sub    { font-size: 0.8rem; font-weight: 500; opacity: 0.75; }
-.out-high        { background: rgba(52,211,153,0.1);  border: 1px solid rgba(52,211,153,0.25); }
-.out-high .outcome-label  { color: #34d399; }
-.out-medium      { background: rgba(96,165,250,0.1);  border: 1px solid rgba(96,165,250,0.25); }
-.out-medium .outcome-label { color: #60a5fa; }
-.out-low         { background: rgba(251,113,133,0.1); border: 1px solid rgba(251,113,133,0.25); }
-.out-low .outcome-label   { color: #fb7185; }
-.out-distinction { background: rgba(251,191,36,0.1);  border: 1px solid rgba(251,191,36,0.25); }
-.out-distinction .outcome-label { color: #fbbf24; }
+.outcome-display::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 60%; height: 1px;
+    background: currentColor;
+    opacity: 0.3;
+}
+/* .outcome-emoji replaced by .outcome-icon */
+.outcome-label  { font-size: 1.65rem; font-weight: 900; display: block; margin-bottom: 0.35rem; letter-spacing: -0.02em; }
+.outcome-sub    { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.6; }
+.out-high        { background: rgba(52,211,153,0.1);  border: 1px solid rgba(52,211,153,0.3);  box-shadow: 0 8px 30px rgba(52,211,153,0.08); }
+.out-high .outcome-label  { color: #34d399; text-shadow: 0 0 20px rgba(52,211,153,0.4); }
+.out-medium      { background: rgba(96,165,250,0.1);  border: 1px solid rgba(96,165,250,0.3);  box-shadow: 0 8px 30px rgba(96,165,250,0.08); }
+.out-medium .outcome-label { color: #60a5fa; text-shadow: 0 0 20px rgba(96,165,250,0.4); }
+.out-low         { background: rgba(251,113,133,0.1); border: 1px solid rgba(251,113,133,0.3); box-shadow: 0 8px 30px rgba(251,113,133,0.08); }
+.out-low .outcome-label   { color: #fb7185; text-shadow: 0 0 20px rgba(251,113,133,0.4); }
+.out-distinction { background: rgba(251,191,36,0.1);  border: 1px solid rgba(251,191,36,0.3);  box-shadow: 0 8px 30px rgba(251,191,36,0.08); }
+.out-distinction .outcome-label { color: #fbbf24; text-shadow: 0 0 20px rgba(251,191,36,0.4); }
 
 /* ── Confidence bars ─────────────────────── */
 .conf-section-label {
@@ -168,8 +179,8 @@ p { color: #94a3b8; line-height: 1.7; }
 .conf-name { color: #94a3b8; font-size: 0.8rem; font-weight: 500; }
 .conf-pct  { color: #e2e8f0; font-size: 0.8rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
 .conf-track {
-    height: 6px;
-    background: rgba(255,255,255,0.06);
+    height: 7px;
+    background: rgba(255,255,255,0.08);
     border-radius: 100px;
     overflow: hidden;
 }
@@ -182,10 +193,11 @@ p { color: #94a3b8; line-height: 1.7; }
 
 /* ── SHAP panel ─────────────────────────── */
 .shap-panel {
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(10,8,35,0.7);
+    border: 1px solid rgba(99,102,241,0.15);
     border-radius: 20px;
     padding: 1.8rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
 }
 .shap-panel-title {
     font-size: 0.68rem;
@@ -213,6 +225,85 @@ p { color: #94a3b8; line-height: 1.7; }
 .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #64748b; }
 .legend-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
+
+/* ── Icon system ─────────────────────────── */
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.icon svg {
+    width: var(--icon-sz, 14px);
+    height: var(--icon-sz, 14px);
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    display: block;
+}
+
+/* ── Outcome icon wrapper ───────────────── */
+.outcome-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    margin: 0 auto 0.9rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.outcome-icon svg {
+    width: 24px; height: 24px;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+}
+.out-high   .outcome-icon { background: rgba(52,211,153,0.12); border-color: rgba(52,211,153,0.25); color: #34d399; }
+.out-medium .outcome-icon { background: rgba(96,165,250,0.12); border-color: rgba(96,165,250,0.25); color: #60a5fa; }
+.out-low    .outcome-icon { background: rgba(251,113,133,0.12); border-color: rgba(251,113,133,0.25); color: #fb7185; }
+.out-distinction .outcome-icon { background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.25); color: #fbbf24; }
+
+/* ── Conf name icon ─────────────────────── */
+.conf-name-icon {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.conf-name-icon svg {
+    width: 12px; height: 12px;
+    stroke: currentColor; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round; fill: none;
+    flex-shrink: 0;
+}
+
+/* ── Section label icon ─────────────────── */
+.section-icon {
+    display: inline-flex; align-items: center;
+    margin-right: 0.55rem;
+}
+.section-icon svg {
+    width: 13px; height: 13px;
+    stroke: #818cf8; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round; fill: none;
+}
+
+/* ── Legend swatch ───────────────────────── */
+.legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: #64748b; }
+.legend-swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── Header tag icon ─────────────────────── */
+.header-icon {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+}
+.header-icon svg {
+    width: 12px; height: 12px;
+    stroke: #818cf8; stroke-width: 2.25;
+    stroke-linecap: round; stroke-linejoin: round; fill: none;
+}
+
 /* ── Streamlit widget overrides ─────────────────────────── */
 .stSelectbox label, .stSlider label, .stMultiSelect label {
     color: #94a3b8 !important;
@@ -229,7 +320,8 @@ p { color: #94a3b8; line-height: 1.7; }
     border-radius: 12px !important;
     margin-bottom: 0.5rem !important;
 }
-[data-testid="stExpander"] summary { color: #a5b4fc !important; font-weight: 600 !important; font-size: 0.86rem !important; }
+[data-testid="stExpander"] summary { color: #c7d2fe !important; font-weight: 700 !important; font-size: 0.86rem !important; }
+[data-testid="stExpander"] > div > div { border-top: 1px solid rgba(99,102,241,0.12) !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -245,7 +337,7 @@ def load_model_artifacts(dataset_name):
 # ── Page header ───────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="page-header">
-    <div class="page-header-tag">🤖 Interactive Prediction</div>
+    <div class="page-header-tag"><span class="header-icon"><svg viewBox='0 0 24 24'><polygon points='13 2 3 14 12 14 11 22 21 10 12 10 13 2'/></svg>Interactive Prediction</span></div>
     <h1>Prediction Engine</h1>
     <p>Configure a student profile in the sidebar — the <strong>XGBoost-centred</strong> predictor
        (stacked ensemble for classification) returns the performance outcome in real time, with a
@@ -263,9 +355,9 @@ with col_sel:
     )
 
 dataset_map = {
-    "UCI (High School Grades)":          ("uci",     "regression",     "pill-uci",     "📈 Regression · Final Grade G3"),
-    "xAPI (K-12 Online Learning)":       ("xapi",    "classification", "pill-xapi",    "🏷️ 3-Class · Low / Medium / High"),
-    "UCI Dropout & Academic Success":    ("dropout", "classification", "pill-oulad",   "🏷️ 3-Class · Dropout / Enrolled / Graduate"),
+    "UCI (High School Grades)":          ("uci",     "regression",     "pill-uci",     "REG · Final Grade G3"),
+    "xAPI (K-12 Online Learning)":       ("xapi",    "classification", "pill-xapi",    "CLF · Low / Medium / High"),
+    "UCI Dropout & Academic Success":    ("dropout", "classification", "pill-oulad",   "CLF · Dropout / Enrolled / Graduate"),
 }
 dataset_key, task_type, pill_cls, pill_label = dataset_map[dataset_choice]
 st.markdown(f'<span class="ds-pill {pill_cls}">{pill_label}</span>', unsafe_allow_html=True)
@@ -274,7 +366,7 @@ st.markdown(f'<span class="ds-pill {pill_cls}">{pill_label}</span>', unsafe_allo
 try:
     model, explainer, pipeline = load_model_artifacts(dataset_key)
 except FileNotFoundError:
-    st.error("⚠️ Model artifacts not found. Run: `python src/train.py`")
+    st.error("Model artifacts not found. Run: `python src/train.py`")
     st.stop()
 
 raw_features = pipeline['raw_features']
@@ -283,7 +375,7 @@ num_cols     = pipeline['num_cols']
 cat_classes  = pipeline.get('cat_classes', {})
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
-st.sidebar.markdown("## 🎛️ Student Profile Builder")
+st.sidebar.markdown("## Student Profile Builder")
 st.sidebar.markdown("<div style='height:1px;background:rgba(99,102,241,0.2);margin:0.5rem 0 1rem'></div>", unsafe_allow_html=True)
 
 def _max_val(f):
@@ -296,7 +388,7 @@ def _max_val(f):
 user_input = {}
 half = len(raw_features) // 2
 
-with st.sidebar.expander("📚 Academic & Demographics", expanded=True):
+with st.sidebar.expander("Academic & Demographics", expanded=True):
     for feature in raw_features[:half]:
         if feature in num_cols:
             mv = _max_val(feature)
@@ -305,7 +397,7 @@ with st.sidebar.expander("📚 Academic & Demographics", expanded=True):
             classes = cat_classes.get(feature, ["Unknown"])
             user_input[feature] = st.selectbox(feature.replace("_"," ").title(), classes, key=feature)
 
-with st.sidebar.expander("💬 Behavioural & Engagement", expanded=True):
+with st.sidebar.expander("Behavioural & Engagement", expanded=True):
     for feature in raw_features[half:]:
         if feature in num_cols:
             mv = _max_val(feature)
@@ -330,24 +422,24 @@ res_col, shap_col = st.columns([1, 2], gap="large")
 
 # class info — covers both xAPI (0=Low,1=Med,2=High) and Dropout (0=Dropout,1=Enrolled,2=Graduate)
 class_info = {
-    0: ("Low / Dropout",   "out-low",    "📉", "#fb7185"),
-    1: ("Medium / Enrolled","out-medium", "📈", "#60a5fa"),
-    2: ("High / Graduate",  "out-high",   "🎓", "#34d399"),
-    3: ("Distinction",      "out-distinction", "🌟", "#fbbf24"),
+    0: ("Low / Dropout",    "out-low",         "<svg viewBox='0 0 24 24'><path d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>",        "#fb7185"),
+    1: ("Medium / Enrolled","out-medium",       "<svg viewBox='0 0 24 24'><polyline points='22 7 13.5 15.5 8.5 10.5 2 17'/><polyline points='16 7 22 7 22 13'/></svg>",     "#60a5fa"),
+    2: ("High / Graduate",  "out-high",         "<svg viewBox='0 0 24 24'><path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/><polyline points='22 4 12 14.01 9 11.01'/></svg>", "#34d399"),
+    3: ("Distinction",      "out-distinction",  "<svg viewBox='0 0 24 24'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>",         "#fbbf24"),
 }
 
 with res_col:
-    st.markdown('<div class="result-card"><div class="result-card-title">📊 Prediction Result</div>', unsafe_allow_html=True)
+    st.markdown("<div class='result-card'><div class='result-card-title'><span class='section-icon'><svg viewBox='0 0 24 24'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg></span>Prediction Result</div>", unsafe_allow_html=True)
 
     if task_type == 'regression':
         pred = model.predict(input_df_selected)[0]
-        if pred >= 16:   band, cls, icon = "Excellent", "out-high",        "🏆"
-        elif pred >= 12: band, cls, icon = "Good",      "out-high",        "📈"
-        elif pred >= 8:  band, cls, icon = "Moderate",  "out-medium",      "📊"
-        else:            band, cls, icon = "At Risk",   "out-low",         "📉"
+        if pred >= 16:   band, cls, icon = "Excellent", "out-high",        "<svg viewBox='0 0 24 24'><circle cx='12' cy='8' r='6'/><path d='M15.477 12.89L17 22l-5-3-5 3 1.523-9.11'/></svg>"
+        elif pred >= 12: band, cls, icon = "Good",      "out-high",        "<svg viewBox='0 0 24 24'><polyline points='22 7 13.5 15.5 8.5 10.5 2 17'/><polyline points='16 7 22 7 22 13'/></svg>"
+        elif pred >= 8:  band, cls, icon = "Moderate",  "out-medium",      "<svg viewBox='0 0 24 24'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg>"
+        else:            band, cls, icon = "At Risk",   "out-low",         "<svg viewBox='0 0 24 24'><path d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>"
         st.markdown(f"""
         <div class="outcome-display {cls}">
-            <span class="outcome-emoji">{icon}</span>
+            <div class="outcome-icon">{icon}</div>
             <span class="outcome-label">G3 Score: {pred:.1f} / 20</span>
             <span class="outcome-sub">Performance Band: {band}</span>
         </div>
@@ -355,10 +447,10 @@ with res_col:
     else:
         pred_probs = model.predict_proba(input_df_selected)[0]
         pred_class = model.predict(input_df_selected)[0]
-        label, cls, icon, _ = class_info.get(int(pred_class), ("Unknown", "out-medium", "❓", "#94a3b8"))
+        label, cls, icon, _ = class_info.get(int(pred_class), ("Unknown", "out-medium", "<svg viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/><path d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>", "#94a3b8"))
         st.markdown(f"""
         <div class="outcome-display {cls}">
-            <span class="outcome-emoji">{icon}</span>
+            <div class="outcome-icon">{icon}</div>
             <span class="outcome-label">{label}</span>
             <span class="outcome-sub">Predicted Performance Class</span>
         </div>
@@ -373,7 +465,7 @@ with res_col:
             st.markdown(f"""
             <div class="conf-item">
                 <div class="conf-top">
-                    <span class="conf-name">{ico} {lbl}</span>
+                    <span class="conf-name"><span class="conf-name-icon">{ico}{lbl}</span></span>
                     <span class="conf-pct">{pct:.1f}%</span>
                 </div>
                 <div class="conf-track">
@@ -387,11 +479,11 @@ with res_col:
 with shap_col:
     st.markdown("""
     <div class="shap-panel">
-        <div class="shap-panel-title">🔍 SHAP Force Plot — Why this prediction?</div>
+        <div class="shap-panel-title"><span class="section-icon"><svg viewBox='0 0 24 24'><rect x='4' y='4' width='16' height='16' rx='2'/><rect x='9' y='9' width='6' height='6'/><line x1='9' y1='2' x2='9' y2='4'/><line x1='15' y1='2' x2='15' y2='4'/><line x1='9' y1='20' x2='9' y2='22'/><line x1='15' y1='20' x2='15' y2='22'/><line x1='20' y1='9' x2='22' y2='9'/><line x1='20' y1='14' x2='22' y2='14'/><line x1='2' y1='9' x2='4' y2='9'/><line x1='2' y1='14' x2='4' y2='14'/></svg></span>SHAP Force Plot — Why this prediction?</div>
         <div class="shap-legend">
-            <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div> Pushes prediction higher</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;"></div> Pushes prediction lower</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#6b7280;"></div> Width = magnitude</div>
+            <div class="legend-item"><div class="legend-swatch" style="background:#ef4444;"></div>Pushes higher</div>
+            <div class="legend-item"><div class="legend-swatch" style="background:#3b82f6;"></div>Pushes lower</div>
+            <div class="legend-item"><div class="legend-swatch" style="background:#334155;"></div>Width = magnitude</div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -433,7 +525,7 @@ with shap_col:
 
         st.markdown("""
         <div class="shap-panel">
-            <div class="shap-panel-title">📋 Top Feature Contributions</div>
+            <div class="shap-panel-title"><span class="section-icon"><svg viewBox='0 0 24 24'><line x1='8' y1='6' x2='21' y2='6'/><line x1='8' y1='12' x2='21' y2='12'/><line x1='8' y1='18' x2='21' y2='18'/><line x1='3' y1='6' x2='3.01' y2='6'/><line x1='3' y1='12' x2='3.01' y2='12'/><line x1='3' y1='18' x2='3.01' y2='18'/></svg></span>Top Feature Contributions</div>
         """, unsafe_allow_html=True)
         st.dataframe(
             feat_imp.head(8)

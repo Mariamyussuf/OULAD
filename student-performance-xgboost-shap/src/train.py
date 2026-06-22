@@ -25,9 +25,11 @@ from sklearn.metrics import (
 from sklearn.ensemble import (
     StackingClassifier, StackingRegressor,
     RandomForestClassifier, RandomForestRegressor,
-    GradientBoostingClassifier, GradientBoostingRegressor
+    GradientBoostingClassifier, GradientBoostingRegressor,
+    ExtraTreesClassifier, ExtraTreesRegressor
 )
 from imblearn.over_sampling import SMOTE
+import lightgbm as lgb
 from data_loader import DatasetLoader
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -47,7 +49,7 @@ class ModelTrainer:
 
         raw_features = list(X.columns)
         num_cols = X.select_dtypes(include=['int64', 'float64']).columns.tolist()
-        cat_cols = X.select_dtypes(include=['object', 'category']).columns.tolist()
+        cat_cols = X.select_dtypes(include=['object', 'str', 'category']).columns.tolist()
 
         cat_classes = {}
         for col in cat_cols:
@@ -103,7 +105,14 @@ class ModelTrainer:
                 n_estimators=50, max_depth=5, random_state=42, n_jobs=-1
             )
 
-        n_features_to_select = max(5, int(X_train_scaled.shape[1] * 0.75))
+        # Small tabular datasets (e.g. xAPI ~16 features): keep ALL features.
+        # RFE often drops weak-but-useful signals and hurts accuracy on n<600.
+        n_feat = X_train_scaled.shape[1]
+        if n_feat <= 24:
+            n_features_to_select = n_feat
+            logger.info("Small feature space: RFE retains 100% of features")
+        else:
+            n_features_to_select = max(5, int(n_feat * 0.75))
         selector = RFE(
             estimator=selector_estimator,
             n_features_to_select=n_features_to_select, step=1
@@ -117,24 +126,34 @@ class ModelTrainer:
             f"RFE complete: {X_train_scaled.shape[1]} → {len(selected_features)} features retained"
         )
 
-        # ---- 7. SMOTE (applied to training fold only) ---------------------
-        # FIX 2: SMOTE runs after the split so synthetic samples never
-        # contaminate the test set
+        # Row count before oversampling (used to tune search budget for small data)
+        n_train_pre_resample = len(X_train_selected)
+
+        # ---- 7. SMOTE / SMOTEENN (training fold only) ---------------------
         if task_type == 'classification':
+            vc = pd.Series(y_train).value_counts()
+            min_class = int(vc.min())
+            n_neighbors = max(1, min(5, min_class - 1))
+            # SMOTEENN's ENN step often deletes huge portions of real data (see logs:
+            # xAPI class 1: 211→58; dropout class 2: majority→756), which tanks test
+            # accuracy and inflates CV. This project uses **SMOTE only** for imbalance.
             try:
-                n_neighbors = min(5, pd.Series(y_train).value_counts().min() - 1)
-                smote = SMOTE(random_state=42, k_neighbors=max(1, n_neighbors))
-                X_train_selected, y_train = smote.fit_resample(X_train_selected, y_train)
+                smote = SMOTE(random_state=42, k_neighbors=n_neighbors)
+                X_train_selected, y_train = smote.fit_resample(
+                    X_train_selected, y_train
+                )
                 class_dist_after = str(
                     pd.Series(y_train).value_counts().sort_index().to_dict()
                 )
-                logger.info(f"Class distribution AFTER SMOTE:  {class_dist_after}")
+                logger.info(f"Class distribution AFTER SMOTE: {class_dist_after}")
             except Exception as e:
                 logger.warning(f"SMOTE skipped: {e}")
 
         # ---- 8. Build Stacking Ensemble -----------------------------------
         logger.info("Building Stacking Ensemble...")
-        model, cv_strategy, scoring = self._build_model(task_type, X_train_selected.shape[0])
+        model, cv_strategy, scoring = self._build_model(
+            task_type, n_train_pre_resample
+        )
 
         # ---- 9. 5-Fold Cross-Validation -----------------------------------
         logger.info("Running 5-Fold Cross-Validation...")
@@ -174,7 +193,6 @@ class ModelTrainer:
         if task_type == 'regression':
             base_models = [
                 ('rf', RandomForestRegressor(
-                    # FIX 3: tighter regularisation for small UCI dataset
                     n_estimators=300, max_depth=4,
                     min_samples_leaf=10, max_features='sqrt',
                     random_state=42, n_jobs=-1
@@ -183,9 +201,17 @@ class ModelTrainer:
                     n_estimators=200, max_depth=4, learning_rate=0.05,
                     subsample=0.8, random_state=42
                 )),
+                ('et', ExtraTreesRegressor(
+                    n_estimators=300, max_depth=5,
+                    min_samples_leaf=5, max_features='sqrt',
+                    random_state=42, n_jobs=-1
+                )),
+                ('lgb', lgb.LGBMRegressor(
+                    n_estimators=300, max_depth=5, learning_rate=0.05,
+                    subsample=0.8, colsample_bytree=0.8,
+                    random_state=42, verbose=-1, n_jobs=-1
+                )),
             ]
-            # FIX 3: replace tuned XGBoost meta-learner with Ridge —
-            # XGBoost overfits the stacking layer on ~320 training samples
             from sklearn.linear_model import Ridge
             model = StackingRegressor(
                 estimators=base_models,
@@ -198,34 +224,54 @@ class ModelTrainer:
         else:
             base_models = [
                 ('rf', RandomForestClassifier(
-                    n_estimators=300, max_depth=6,
-                    min_samples_leaf=2, class_weight='balanced',
+                    n_estimators=400, max_depth=8,
+                    min_samples_leaf=1, class_weight='balanced',
                     random_state=42, n_jobs=-1
                 )),
                 ('gb', GradientBoostingClassifier(
-                    n_estimators=200, max_depth=4, learning_rate=0.05,
+                    n_estimators=300, max_depth=5, learning_rate=0.05,
                     subsample=0.8, random_state=42
                 )),
+                ('et', ExtraTreesClassifier(
+                    n_estimators=400, max_depth=8,
+                    min_samples_leaf=1, class_weight='balanced',
+                    random_state=42, n_jobs=-1
+                )),
+                ('lgb', lgb.LGBMClassifier(
+                    n_estimators=400, max_depth=7, learning_rate=0.05,
+                    subsample=0.8, colsample_bytree=0.8,
+                    class_weight='balanced',
+                    random_state=42, verbose=-1, n_jobs=-1
+                )),
             ]
+            # XGBoost meta-learner with wider search space
             xgb_meta = xgb.XGBClassifier(
                 objective='multi:softprob', random_state=42,
                 eval_metric='mlogloss', verbosity=0,
                 use_label_encoder=False
             )
             param_dist = {
-                'n_estimators':    [200, 300, 400],
-                'max_depth':       [3, 4, 5, 6],
-                'learning_rate':   [0.01, 0.05, 0.1],
-                'subsample':       [0.7, 0.8, 0.9],
-                'colsample_bytree':[0.7, 0.8, 1.0],
-                'min_child_weight':[1, 3, 5],
+                'n_estimators':     [200, 300, 400, 500, 600, 800],
+                'max_depth':        [3, 4, 5, 6, 7, 8],
+                'learning_rate':    [0.01, 0.03, 0.05, 0.08, 0.1],
+                'subsample':        [0.6, 0.7, 0.8, 0.9, 1.0],
+                'colsample_bytree': [0.6, 0.7, 0.8, 0.9, 1.0],
+                'min_child_weight': [1, 2, 3, 5],
+                'gamma':            [0, 0.05, 0.1, 0.2],
+                'reg_alpha':        [0, 0.05, 0.1, 0.5, 1.0],
+                'reg_lambda':       [1, 1.5, 2, 3, 5],
             }
+            # More search iterations help the meta-learner on noisy small-data CV.
+            n_search = 100 if n_train < 2000 else 50
             tuned_meta = RandomizedSearchCV(
-                xgb_meta, param_dist, n_iter=20,
-                cv=3, scoring='accuracy', n_jobs=-1, random_state=42, verbose=0
+                xgb_meta, param_dist, n_iter=n_search,
+                cv=5, scoring='accuracy', n_jobs=-1, random_state=42, verbose=0
             )
             model = StackingClassifier(
-                estimators=base_models, final_estimator=tuned_meta, cv=3
+                estimators=base_models,
+                final_estimator=tuned_meta,
+                cv=5,                        # 5-fold OOF → richer meta-features
+                stack_method='predict_proba' # pass probabilities, not hard labels
             )
             cv_strategy = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
             scoring = 'accuracy'
@@ -342,9 +388,9 @@ if __name__ == "__main__":
     trainer = ModelTrainer(models_dir=str(PROJECT_ROOT / "models"))
 
     datasets = [
-        ("uci",   loader.load_uci_data,   'regression'),
-        ("xapi",  loader.load_xapi_data,  'classification'),
-        ("oulad", loader.load_oulad_data, 'classification'),
+        ("uci",     loader.load_uci_data,     'regression'),
+        ("xapi",    loader.load_xapi_data,    'classification'),
+        ("dropout", loader.load_dropout_data, 'classification'),
     ]
 
     for name, load_func, task in datasets:
@@ -352,4 +398,4 @@ if __name__ == "__main__":
         X, y = load_func()
         trainer.train_and_evaluate(name, X, y, task_type=task)
 
-    logger.info("\n All pipelines completed successfully.")
+    logger.info("\n\u2705 All pipelines completed successfully.")

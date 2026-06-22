@@ -1,18 +1,18 @@
 --- Academic Performance Report: OULAD ---
 
-5-Fold Cross Validation (ACCURACY): 0.7628 +/- 0.0043
+5-Fold Cross Validation (ACCURACY): 0.7573 +/- 0.0041
 
 Class Distribution Before SMOTE: {0: 7052, 1: 10156, 2: 12361, 3: 3024}
-Class Distribution After SMOTE:  {0: 12361, 1: 12361, 2: 12361, 3: 12361}
+Class Distribution After SMOTE:  {0: 9889, 1: 9889, 2: 9889, 3: 9889}
 
 Test Set Classification Report:
               precision    recall  f1-score   support
 
-           0       0.68      0.61      0.65      1236
-           1       0.74      0.72      0.73      1236
-           2       0.75      0.86      0.80      1237
-           3       0.89      0.87      0.88      1236
+           0       0.55      0.46      0.50      1411
+           1       0.75      0.76      0.75      2031
+           2       0.79      0.80      0.79      2472
+           3       0.53      0.69      0.60       605
 
-    accuracy                           0.77      4945
-   macro avg       0.76      0.77      0.76      4945
-weighted avg       0.76      0.77      0.76      4945
+    accuracy                           0.70      6519
+   macro avg       0.66      0.68      0.66      6519
+weighted avg       0.70      0.70      0.70      6519

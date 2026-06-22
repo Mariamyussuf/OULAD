@@ -1,0 +1,17 @@
+--- Academic Performance Report: DROPOUT ---
+
+5-Fold Cross Validation (ACCURACY): 0.9447 +/- 0.0064
+
+Class Distribution Before SMOTE: {0: 1421, 1: 794, 2: 2209}
+Class Distribution After SMOTE:  {0: 1146, 1: 1319, 2: 756}
+
+Test Set Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.81      0.67      0.73       284
+           1       0.40      0.71      0.51       159
+           2       0.88      0.73      0.80       442
+
+    accuracy                           0.71       885
+   macro avg       0.70      0.70      0.68       885
+weighted avg       0.77      0.71      0.73       885

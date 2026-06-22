@@ -1,7 +1,7 @@
 --- Academic Performance Report: UCI ---
 
-5-Fold Cross Validation (R2): 0.8656 +/- 0.0705
+5-Fold Cross Validation (R2): 0.8799 +/- 0.0322
 
-Test Set RMSE:     2.9516
-Test Set MSE:      8.7120
-Test Set R² Score: 0.6472
+Test Set RMSE:     1.9119
+Test Set MSE:      3.6553
+Test Set R² Score: 0.8217

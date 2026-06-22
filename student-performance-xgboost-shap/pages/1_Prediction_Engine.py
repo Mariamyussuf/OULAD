@@ -8,83 +8,228 @@ from streamlit_shap import st_shap
 
 st.set_page_config(page_title="Prediction Engine — EduPredict", page_icon="🤖", layout="wide")
 
-# ── Shared CSS (same dark theme) ─────────────────────────────────────────────
+# ── Global Design System ──────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; }
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-.stApp { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); min-height: 100vh; }
-[data-testid="stSidebar"] { background: rgba(255,255,255,0.04); border-right: 1px solid rgba(255,255,255,0.08); }
-[data-testid="stSidebar"] * { color: #e0e0e0 !important; }
-[data-testid="stSidebar"] .stSlider > div > div { background: rgba(102,126,234,0.3) !important; }
 
-/* Page header */
+.stApp {
+    background-color: #060818;
+    background-image:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(168,85,247,0.14) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 55% 50%, rgba(236,72,153,0.08) 0%, transparent 50%);
+    min-height: 100vh;
+}
+
+[data-testid="stSidebar"] {
+    background: rgba(6,8,24,0.9) !important;
+    border-right: 1px solid rgba(99,102,241,0.18) !important;
+    backdrop-filter: blur(20px);
+}
+[data-testid="stSidebar"] * { color: #cbd5e1 !important; }
+[data-testid="stSidebar"] .stSelectbox > div > div {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(99,102,241,0.3) !important;
+}
+[data-testid="stSidebar"] .stSlider > div > div > div {
+    background: linear-gradient(90deg, #4f46e5, #7c3aed) !important;
+}
+
+/* Nav */
+[data-testid="stSidebarNav"] a { border-radius: 10px !important; margin: 2px 0 !important; transition: background 0.2s !important; }
+[data-testid="stSidebarNav"] a:hover { background: rgba(99,102,241,0.15) !important; }
+[data-testid="stSidebarNav"] a[aria-current="page"] {
+    background: linear-gradient(90deg, rgba(99,102,241,0.25), rgba(168,85,247,0.15)) !important;
+    border-left: 3px solid #818cf8 !important;
+}
+
+h1, h2, h3, h4 { color: #f1f5f9 !important; }
+p { color: #94a3b8; line-height: 1.7; }
+
+/* ── Page header ─────────────────────────── */
 .page-header {
-    background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
-    border: 1px solid rgba(102,126,234,0.3);
-    border-radius: 16px;
-    padding: 1.8rem 2rem;
-    margin-bottom: 1.8rem;
-}
-.page-header h1 { font-size: 1.8rem; font-weight: 800; color: #e2e8f0 !important; margin: 0 0 0.4rem 0; }
-.page-header p  { color: #94a3b8; font-size: 0.92rem; margin: 0; }
-
-/* Dataset badge */
-.dataset-badge {
-    display: inline-block;
-    padding: 0.3rem 1rem;
+    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.08));
+    border: 1px solid rgba(99,102,241,0.22);
     border-radius: 20px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-bottom: 1.2rem;
+    padding: 2rem 2.4rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
 }
-.badge-uci   { background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.4); color: #34d399; }
-.badge-xapi  { background: rgba(96,165,250,0.15); border: 1px solid rgba(96,165,250,0.4); color: #60a5fa; }
-.badge-oulad { background: rgba(251,146,60,0.15); border: 1px solid rgba(251,146,60,0.4);  color: #fb923c; }
+.page-header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(168,85,247,0.15), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.page-header-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #818cf8;
+    margin-bottom: 0.6rem;
+}
+.page-header h1 {
+    font-size: 1.9rem !important;
+    font-weight: 800 !important;
+    color: #f1f5f9 !important;
+    margin: 0 0 0.5rem 0 !important;
+    letter-spacing: -0.02em;
+}
+.page-header p { color: #94a3b8; font-size: 0.9rem; margin: 0; }
 
-/* Prediction card */
-.pred-card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 16px;
+/* ── Dataset selector pill ───────────────── */
+.ds-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1.2rem;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+}
+.pill-uci   { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.35); color: #34d399; }
+.pill-xapi  { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.35); color: #60a5fa; }
+.pill-oulad { background: rgba(251,146,60,0.12); border: 1px solid rgba(251,146,60,0.35); color: #fb923c; }
+
+/* ── Result card ─────────────────────────── */
+.result-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
     padding: 1.8rem;
     height: 100%;
 }
-.pred-card h3 { color: #e2e8f0; font-size: 1rem; font-weight: 700; margin: 0 0 1.2rem 0; }
-
-/* Outcome pill */
-.outcome-pill {
-    text-align: center;
-    padding: 1rem;
-    border-radius: 12px;
-    margin: 0.6rem 0;
+.result-card-title {
+    font-size: 0.68rem;
     font-weight: 700;
-    font-size: 1.4rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #818cf8;
+    margin-bottom: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
-.outcome-high        { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
-.outcome-medium      { background: rgba(96,165,250,0.15); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); }
-.outcome-low         { background: rgba(251,113,133,0.15); color: #fb7185; border: 1px solid rgba(251,113,133,0.3); }
-.outcome-distinction { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+.result-card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(99,102,241,0.3), transparent);
+}
 
-/* Confidence bar label */
-.conf-label { color: #94a3b8; font-size: 0.8rem; margin-bottom: 0.2rem; }
-
-/* SHAP card */
-.shap-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.09);
+/* ── Outcome display ─────────────────────── */
+.outcome-display {
+    text-align: center;
+    padding: 1.6rem 1rem;
     border-radius: 16px;
+    margin-bottom: 1.2rem;
+    position: relative;
+    overflow: hidden;
+}
+.outcome-emoji  { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
+.outcome-label  { font-size: 1.5rem; font-weight: 800; display: block; margin-bottom: 0.3rem; }
+.outcome-sub    { font-size: 0.8rem; font-weight: 500; opacity: 0.75; }
+.out-high        { background: rgba(52,211,153,0.1);  border: 1px solid rgba(52,211,153,0.25); }
+.out-high .outcome-label  { color: #34d399; }
+.out-medium      { background: rgba(96,165,250,0.1);  border: 1px solid rgba(96,165,250,0.25); }
+.out-medium .outcome-label { color: #60a5fa; }
+.out-low         { background: rgba(251,113,133,0.1); border: 1px solid rgba(251,113,133,0.25); }
+.out-low .outcome-label   { color: #fb7185; }
+.out-distinction { background: rgba(251,191,36,0.1);  border: 1px solid rgba(251,191,36,0.25); }
+.out-distinction .outcome-label { color: #fbbf24; }
+
+/* ── Confidence bars ─────────────────────── */
+.conf-section-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #475569;
+    margin-bottom: 0.8rem;
+}
+.conf-item { margin-bottom: 0.7rem; }
+.conf-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.3rem;
+}
+.conf-name { color: #94a3b8; font-size: 0.8rem; font-weight: 500; }
+.conf-pct  { color: #e2e8f0; font-size: 0.8rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.conf-track {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 100px;
+    overflow: hidden;
+}
+.conf-fill {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, #4f46e5, #a855f7);
+    transition: width 0.5s ease;
+}
+
+/* ── SHAP panel ─────────────────────────── */
+.shap-panel {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
     padding: 1.8rem;
 }
-.shap-card h3 { color: #e2e8f0; font-size: 1rem; font-weight: 700; margin: 0 0 0.6rem 0; }
-.shap-card p  { color: #64748b; font-size: 0.83rem; margin: 0 0 1rem 0; }
+.shap-panel-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #818cf8;
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.shap-panel-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(99,102,241,0.3), transparent);
+}
+.shap-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+}
+.legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #64748b; }
+.legend-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
-h1, h2, h3, h4 { color: #e2e8f0 !important; }
-p { color: #94a3b8; }
-.stSelectbox label, .stSlider label { color: #a0aec0 !important; font-size: 0.85rem !important; }
-.stProgress > div > div { background: linear-gradient(90deg, #667eea, #f093fb) !important; }
+/* ── Streamlit widget overrides ─────────────────────────── */
+.stSelectbox label, .stSlider label, .stMultiSelect label {
+    color: #94a3b8 !important;
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
+}
+.stProgress > div > div { background: linear-gradient(90deg, #4f46e5, #a855f7) !important; }
+.stDataFrame { border-radius: 12px; overflow: hidden; }
+
+/* Sidebar expander */
+[data-testid="stExpander"] {
+    background: rgba(255,255,255,0.02) !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 12px !important;
+    margin-bottom: 0.5rem !important;
+}
+[data-testid="stExpander"] summary { color: #a5b4fc !important; font-weight: 600 !important; font-size: 0.86rem !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -97,63 +242,65 @@ def load_model_artifacts(dataset_name):
     with open(MODELS_DIR / f"{dataset_name}_pipeline.pkl", "rb") as f: pipeline = pickle.load(f)
     return model, explainer, pipeline
 
-# ── Page header ──────────────────────────────────────────────────────────────
+# ── Page header ───────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="page-header">
-    <h1>🤖 Predictive Analytics Engine</h1>
-    <p>Configure a student profile using the sidebar controls, then watch the stacking ensemble
-       predict the performance outcome — with a real-time SHAP force plot explaining every decision.</p>
+    <div class="page-header-tag">🤖 Interactive Prediction</div>
+    <h1>Prediction Engine</h1>
+    <p>Configure a student profile in the sidebar — the <strong>XGBoost-centred</strong> predictor
+       (stacked ensemble for classification) returns the performance outcome in real time, with a
+       SHAP force plot explaining each decision.</p>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Dataset selector ─────────────────────────────────────────────────────────
-dataset_choice = st.selectbox(
-    "**Select Analytical Context:**",
-    ("UCI (High School Grades)", "xAPI (K-12 Online Learning)", "OULAD (University Online Courses)"),
-    help="Each dataset uses a separately trained stacking ensemble."
-)
+# ── Dataset selector ──────────────────────────────────────────────────────────
+col_sel, _ = st.columns([2, 3])
+with col_sel:
+    dataset_choice = st.selectbox(
+        "**Analytical Context**",
+        ("UCI (High School Grades)", "xAPI (K-12 Online Learning)", "UCI Dropout & Academic Success"),
+        help="Each dataset uses a separately trained stacking ensemble.",
+    )
 
 dataset_map = {
-    "UCI (High School Grades)":         ("uci",   "regression",     "badge-uci"),
-    "xAPI (K-12 Online Learning)":      ("xapi",  "classification", "badge-xapi"),
-    "OULAD (University Online Courses)":("oulad", "classification", "badge-oulad"),
+    "UCI (High School Grades)":          ("uci",     "regression",     "pill-uci",     "📈 Regression · Final Grade G3"),
+    "xAPI (K-12 Online Learning)":       ("xapi",    "classification", "pill-xapi",    "🏷️ 3-Class · Low / Medium / High"),
+    "UCI Dropout & Academic Success":    ("dropout", "classification", "pill-oulad",   "🏷️ 3-Class · Dropout / Enrolled / Graduate"),
 }
-dataset_key, task_type, badge_class = dataset_map[dataset_choice]
+dataset_key, task_type, pill_cls, pill_label = dataset_map[dataset_choice]
+st.markdown(f'<span class="ds-pill {pill_cls}">{pill_label}</span>', unsafe_allow_html=True)
 
-badge_labels = {"uci": "📈 Regression Task", "xapi": "🏷️ 3-Class Classification", "oulad": "🏷️ 4-Class Classification"}
-st.markdown(f'<span class="dataset-badge {badge_class}">{badge_labels[dataset_key]}</span>', unsafe_allow_html=True)
-
-# ── Load artifacts ───────────────────────────────────────────────────────────
+# ── Load artifacts ────────────────────────────────────────────────────────────
 try:
     model, explainer, pipeline = load_model_artifacts(dataset_key)
 except FileNotFoundError:
-    st.error("⚠️ Model artifacts not found. Please run the training pipeline first: `python src/train.py`")
+    st.error("⚠️ Model artifacts not found. Run: `python src/train.py`")
     st.stop()
 
-raw_features  = pipeline['raw_features']
-cat_cols      = pipeline['cat_cols']
-num_cols      = pipeline['num_cols']
-cat_classes   = pipeline.get('cat_classes', {})
+raw_features = pipeline['raw_features']
+cat_cols     = pipeline['cat_cols']
+num_cols     = pipeline['num_cols']
+cat_classes  = pipeline.get('cat_classes', {})
 
-# ── Sidebar profile builder ──────────────────────────────────────────────────
-st.sidebar.markdown("## 🎛️ Student Profile")
-st.sidebar.markdown("---")
+# ── Sidebar ───────────────────────────────────────────────────────────────────
+st.sidebar.markdown("## 🎛️ Student Profile Builder")
+st.sidebar.markdown("<div style='height:1px;background:rgba(99,102,241,0.2);margin:0.5rem 0 1rem'></div>", unsafe_allow_html=True)
+
+def _max_val(f):
+    fl = f.lower()
+    if any(k in fl for k in ["absences","score","hands","visited","discussion","view","mean","median","max_score","min_score","std","submit"]): return 100.0
+    if "credits" in fl: return 300.0
+    if "attempts" in fl: return 10.0
+    return 20.0
 
 user_input = {}
 half = len(raw_features) // 2
-
-def _max_val(feature):
-    if any(k in feature.lower() for k in ["absences","score","hands","visited","discussion","view","mean","median","max_score","min_score","std","submit"]):
-        return 100.0
-    if "credits" in feature.lower(): return 300.0
-    if "attempts" in feature.lower(): return 10.0
-    return 20.0
 
 with st.sidebar.expander("📚 Academic & Demographics", expanded=True):
     for feature in raw_features[:half]:
         if feature in num_cols:
             mv = _max_val(feature)
-            user_input[feature] = st.slider(feature.replace("_"," ").title(), 0.0, mv, mv / 2, key=feature)
+            user_input[feature] = st.slider(feature.replace("_"," ").title(), 0.0, mv, mv/2, key=feature)
         elif feature in cat_cols:
             classes = cat_classes.get(feature, ["Unknown"])
             user_input[feature] = st.selectbox(feature.replace("_"," ").title(), classes, key=feature)
@@ -162,14 +309,15 @@ with st.sidebar.expander("💬 Behavioural & Engagement", expanded=True):
     for feature in raw_features[half:]:
         if feature in num_cols:
             mv = _max_val(feature)
-            user_input[feature] = st.slider(feature.replace("_"," ").title(), 0.0, mv, mv / 2, key=feature+"_b")
+            user_input[feature] = st.slider(feature.replace("_"," ").title(), 0.0, mv, mv/2, key=feature+"_b")
         elif feature in cat_cols:
             classes = cat_classes.get(feature, ["Unknown"])
             user_input[feature] = st.selectbox(feature.replace("_"," ").title(), classes, key=feature+"_b")
 
 # ── Preprocessing ─────────────────────────────────────────────────────────────
 input_df = pd.DataFrame([user_input])
-if num_cols: input_df[num_cols] = pipeline['num_imputer'].transform(input_df[num_cols])
+if num_cols:
+    input_df[num_cols] = pipeline['num_imputer'].transform(input_df[num_cols])
 if cat_cols:
     input_df[cat_cols] = pipeline['cat_imputer'].transform(input_df[cat_cols])
     input_df[cat_cols] = pipeline['encoder'].transform(input_df[cat_cols].astype(str))
@@ -177,47 +325,78 @@ input_df_scaled   = pd.DataFrame(pipeline['scaler'].transform(input_df), columns
 input_df_selected = input_df_scaled[pipeline['selected_features']]
 
 # ── Results layout ────────────────────────────────────────────────────────────
-st.markdown("---")
+st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
 res_col, shap_col = st.columns([1, 2], gap="large")
 
+# class info — covers both xAPI (0=Low,1=Med,2=High) and Dropout (0=Dropout,1=Enrolled,2=Graduate)
+class_info = {
+    0: ("Low / Dropout",   "out-low",    "📉", "#fb7185"),
+    1: ("Medium / Enrolled","out-medium", "📈", "#60a5fa"),
+    2: ("High / Graduate",  "out-high",   "🎓", "#34d399"),
+    3: ("Distinction",      "out-distinction", "🌟", "#fbbf24"),
+}
+
 with res_col:
-    st.markdown('<div class="pred-card"><h3>📊 Prediction Result</h3>', unsafe_allow_html=True)
+    st.markdown('<div class="result-card"><div class="result-card-title">📊 Prediction Result</div>', unsafe_allow_html=True)
 
     if task_type == 'regression':
         pred = model.predict(input_df_selected)[0]
-        # Map score to band
-        if pred >= 15:   band, cls = "High", "outcome-high"
-        elif pred >= 10: band, cls = "Medium", "outcome-medium"
-        else:            band, cls = "Low", "outcome-low"
-        st.markdown(f'<div class="outcome-pill {cls}">G3 Score: {pred:.1f}/20</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="outcome-pill {cls}">Band: {band}</div>', unsafe_allow_html=True)
+        if pred >= 16:   band, cls, icon = "Excellent", "out-high",        "🏆"
+        elif pred >= 12: band, cls, icon = "Good",      "out-high",        "📈"
+        elif pred >= 8:  band, cls, icon = "Moderate",  "out-medium",      "📊"
+        else:            band, cls, icon = "At Risk",   "out-low",         "📉"
+        st.markdown(f"""
+        <div class="outcome-display {cls}">
+            <span class="outcome-emoji">{icon}</span>
+            <span class="outcome-label">G3 Score: {pred:.1f} / 20</span>
+            <span class="outcome-sub">Performance Band: {band}</span>
+        </div>
+        """, unsafe_allow_html=True)
     else:
         pred_probs = model.predict_proba(input_df_selected)[0]
         pred_class = model.predict(input_df_selected)[0]
+        label, cls, icon, _ = class_info.get(int(pred_class), ("Unknown", "out-medium", "❓", "#94a3b8"))
+        st.markdown(f"""
+        <div class="outcome-display {cls}">
+            <span class="outcome-emoji">{icon}</span>
+            <span class="outcome-label">{label}</span>
+            <span class="outcome-sub">Predicted Performance Class</span>
+        </div>
+        """, unsafe_allow_html=True)
 
-        class_info = {
-            0: ("Low / Fail",       "outcome-low",         "📉"),
-            1: ("Medium / Withdrawn","outcome-medium",     "📊"),
-            2: ("High / Pass",       "outcome-high",       "📈"),
-            3: ("Distinction",       "outcome-distinction", "🌟"),
-        }
-        label, pill_cls, icon = class_info.get(int(pred_class), ("Unknown", "outcome-medium", "❓"))
-        st.markdown(f'<div class="outcome-pill {pill_cls}">{icon} {label}</div>', unsafe_allow_html=True)
-
-        st.markdown("<br>**Ensemble Confidence:**", unsafe_allow_html=True)
+        # Confidence bars (custom rendered)
+        st.markdown('<div class="conf-section-label">Ensemble Confidence</div>', unsafe_allow_html=True)
         for i, p in enumerate(pred_probs):
-            lbl, _, ico = class_info.get(i, (f"Class {i}", "outcome-medium", ""))
-            st.markdown(f'<div class="conf-label">{ico} {lbl}: {p*100:.1f}%</div>', unsafe_allow_html=True)
-            st.progress(float(p))
+            lbl, _, ico, col = class_info.get(i, (f"Class {i}", "", "", "#818cf8"))
+            pct = p * 100
+            fill_w = f"{pct:.1f}%"
+            st.markdown(f"""
+            <div class="conf-item">
+                <div class="conf-top">
+                    <span class="conf-name">{ico} {lbl}</span>
+                    <span class="conf-pct">{pct:.1f}%</span>
+                </div>
+                <div class="conf-track">
+                    <div class="conf-fill" style="width:{fill_w};background:linear-gradient(90deg,{col}99,{col});"></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
 with shap_col:
-    st.markdown('<div class="shap-card"><h3>🔍 SHAP Force Plot — Why this prediction?</h3><p>Red features push the score higher · Blue features push it lower · Width = magnitude of impact</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="shap-panel">
+        <div class="shap-panel-title">🔍 SHAP Force Plot — Why this prediction?</div>
+        <div class="shap-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div> Pushes prediction higher</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;"></div> Pushes prediction lower</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#6b7280;"></div> Width = magnitude</div>
+        </div>
+    """, unsafe_allow_html=True)
 
     with st.spinner("Computing SHAP explanation..."):
         shap_values = explainer.shap_values(input_df_selected)
-
         try:
             if task_type == 'regression':
                 val     = shap_values[0] if isinstance(shap_values, list) else shap_values
@@ -234,32 +413,35 @@ with shap_col:
                     exp_val = explainer.expected_value
                 st_shap(shap.force_plot(float(exp_val), val, input_df_selected), height=180)
         except Exception as e:
-            st.warning(f"Force plot unavailable for this configuration: {e}")
+            st.warning(f"Force plot unavailable: {e}")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Top features table
-    st.markdown("<br>", unsafe_allow_html=True)
+    # Feature contributions table
+    st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
     try:
         if isinstance(shap_values, list):
             sv = shap_values[int(pred_class)] if task_type == 'classification' else shap_values[0]
         else:
             sv = shap_values
-
         sv_flat = np.array(sv).flatten()
         feat_imp = pd.DataFrame({
-            "Feature":     pipeline['selected_features'],
-            "SHAP Value":  sv_flat,
-            "Direction":   ["↑ Increases risk" if v > 0 else "↓ Decreases risk" for v in sv_flat],
+            "Feature":    pipeline['selected_features'],
+            "SHAP Value": sv_flat,
+            "Impact":     ["↑ Increases" if v > 0 else "↓ Decreases" for v in sv_flat],
         }).reindex(pd.Series(np.abs(sv_flat)).sort_values(ascending=False).index)
 
-        st.markdown("**Top Feature Contributions for this Student:**")
+        st.markdown("""
+        <div class="shap-panel">
+            <div class="shap-panel-title">📋 Top Feature Contributions</div>
+        """, unsafe_allow_html=True)
         st.dataframe(
-            feat_imp.head(8).style
-                .background_gradient(subset=["SHAP Value"], cmap="RdYlGn")
+            feat_imp.head(8)
+                .style.background_gradient(subset=["SHAP Value"], cmap="RdYlGn")
                 .format({"SHAP Value": "{:.4f}"}),
             use_container_width=True,
-            hide_index=True
+            hide_index=True,
         )
+        st.markdown('</div>', unsafe_allow_html=True)
     except Exception:
         pass

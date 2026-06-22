@@ -159,7 +159,7 @@ class ModelTrainer:
         logger.info("Running 5-Fold Cross-Validation...")
         cv_scores = cross_val_score(
             model, X_train_selected, y_train,
-            cv=cv_strategy, scoring=scoring, n_jobs=-1
+            cv=cv_strategy, scoring=scoring, n_jobs=1
         )
         logger.info(
             f"CV {scoring}: {cv_scores.mean():.4f} ± {cv_scores.std():.4f}"
@@ -176,9 +176,19 @@ class ModelTrainer:
         )
 
         # ---- 12. SHAP KernelExplainer -------------------------------------
-        logger.info("Building SHAP KernelExplainer (using k-means background)...")
-        background = shap.kmeans(X_train_selected, min(50, len(X_train_selected)))
-        predict_fn = model.predict if task_type == 'regression' else model.predict_proba
+        logger.info("Building SHAP KernelExplainer (using sampled background)...")
+        bg_size = min(50, len(X_train_selected))
+        background = X_train_selected.sample(n=bg_size, random_state=42).reset_index(drop=True)
+        # Wrap predict so SHAP's internal numpy arrays always get column names
+        feat_cols = list(X_train_selected.columns)
+        if task_type == 'regression':
+            _raw_predict = model.predict
+            def predict_fn(X, _fn=_raw_predict, _c=feat_cols):
+                return _fn(pd.DataFrame(X, columns=_c))
+        else:
+            _raw_predict = model.predict_proba
+            def predict_fn(X, _fn=_raw_predict, _c=feat_cols):
+                return _fn(pd.DataFrame(X, columns=_c))
         explainer = shap.KernelExplainer(predict_fn, background)
 
         # ---- 13. Save artifacts -------------------------------------------
@@ -195,7 +205,7 @@ class ModelTrainer:
                 ('rf', RandomForestRegressor(
                     n_estimators=300, max_depth=4,
                     min_samples_leaf=10, max_features='sqrt',
-                    random_state=42, n_jobs=-1
+                    random_state=42, n_jobs=1
                 )),
                 ('gb', GradientBoostingRegressor(
                     n_estimators=200, max_depth=4, learning_rate=0.05,
@@ -204,12 +214,12 @@ class ModelTrainer:
                 ('et', ExtraTreesRegressor(
                     n_estimators=300, max_depth=5,
                     min_samples_leaf=5, max_features='sqrt',
-                    random_state=42, n_jobs=-1
+                    random_state=42, n_jobs=1
                 )),
                 ('lgb', lgb.LGBMRegressor(
                     n_estimators=300, max_depth=5, learning_rate=0.05,
                     subsample=0.8, colsample_bytree=0.8,
-                    random_state=42, verbose=-1, n_jobs=-1
+                    random_state=42, verbose=-1, n_jobs=1
                 )),
             ]
             from sklearn.linear_model import Ridge
@@ -226,7 +236,7 @@ class ModelTrainer:
                 ('rf', RandomForestClassifier(
                     n_estimators=400, max_depth=8,
                     min_samples_leaf=1, class_weight='balanced',
-                    random_state=42, n_jobs=-1
+                    random_state=42, n_jobs=1
                 )),
                 ('gb', GradientBoostingClassifier(
                     n_estimators=300, max_depth=5, learning_rate=0.05,
@@ -235,20 +245,20 @@ class ModelTrainer:
                 ('et', ExtraTreesClassifier(
                     n_estimators=400, max_depth=8,
                     min_samples_leaf=1, class_weight='balanced',
-                    random_state=42, n_jobs=-1
+                    random_state=42, n_jobs=1
                 )),
                 ('lgb', lgb.LGBMClassifier(
                     n_estimators=400, max_depth=7, learning_rate=0.05,
                     subsample=0.8, colsample_bytree=0.8,
                     class_weight='balanced',
-                    random_state=42, verbose=-1, n_jobs=-1
+                    random_state=42, verbose=-1, n_jobs=1
                 )),
             ]
-            # XGBoost meta-learner with wider search space
+            # XGBoost meta-learner with wider search space (run on a single thread inside search loop)
             xgb_meta = xgb.XGBClassifier(
                 objective='multi:softprob', random_state=42,
                 eval_metric='mlogloss', verbosity=0,
-                use_label_encoder=False
+                use_label_encoder=False, n_jobs=1
             )
             param_dist = {
                 'n_estimators':     [200, 300, 400, 500, 600, 800],

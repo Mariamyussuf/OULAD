@@ -327,11 +327,91 @@ p { color: #94a3b8; line-height: 1.7; }
 
 MODELS_DIR = Path("models")
 
+# ── Human-readable feature labels (all datasets) ─────────────────────────────
+FEATURE_LABELS = {
+    # UCI Student Performance
+    'school': 'School Name', 'sex': 'Gender', 'age': 'Age',
+    'address': 'Home Address (Urban/Rural)', 'famsize': 'Family Size',
+    'Pstatus': 'Parent Cohabitation Status', 'Medu': "Mother's Education Level",
+    'Fedu': "Father's Education Level", 'Mjob': "Mother's Job",
+    'Fjob': "Father's Job", 'reason': 'Reason for Choosing School',
+    'guardian': 'Student Guardian', 'traveltime': 'Home-to-School Travel Time',
+    'studytime': 'Weekly Study Time', 'failures': 'Past Class Failures',
+    'schoolsup': 'Extra Educational Support', 'famsup': 'Family Educational Support',
+    'paid': 'Extra Paid Classes', 'activities': 'Extracurricular Activities',
+    'nursery': 'Attended Nursery School', 'higher': 'Wants Higher Education',
+    'internet': 'Internet Access at Home', 'romantic': 'In a Romantic Relationship',
+    'famrel': 'Family Relationship Quality (1-5)', 'freetime': 'Free Time After School (1-5)',
+    'goout': 'Going Out with Friends (1-5)', 'Dalc': 'Workday Alcohol Consumption (1-5)',
+    'Walc': 'Weekend Alcohol Consumption (1-5)', 'health': 'Current Health Status (1-5)',
+    'absences': 'Number of School Absences', 'G1': 'First Period Grade (0-20)',
+    'G2': 'Second Period Grade (0-20)',
+    # xAPI Educational Data
+    'gender': 'Gender', 'NationalITy': 'Nationality',
+    'PlaceofBirth': 'Place of Birth', 'StageID': 'Educational Stage',
+    'GradeID': 'Grade Level', 'SectionID': 'Classroom Section',
+    'Topic': 'Course Topic', 'Semester': 'Semester',
+    'Relation': 'Parent Responsible for Student', 'raisedhands': 'Raised Hands in Class',
+    'VisITedResources': 'Visited Learning Resources',
+    'AnnouncementsView': 'Announcements Viewed',
+    'Discussion': 'Discussion Group Participation',
+    'ParentAnsweringSurvey': 'Parent Answered School Survey',
+    'ParentschoolSatisfaction': 'Parent School Satisfaction',
+    'StudentAbsenceDays': 'Student Absence Days',
+    # UCI Dropout & Academic Success
+    'Marital status': 'Marital Status', 'Application mode': 'Application Mode',
+    'Application order': 'Application Preference Order', 'Course': 'Course Enrolled',
+    'Daytime/evening attendance': 'Daytime / Evening Attendance',
+    'Previous qualification': 'Previous Qualification', 'Nacionality': 'Nationality',
+    'Previous qualification (grade)': 'Previous Qualification Grade',
+    "Mother's qualification": "Mother's Qualification",
+    "Father's qualification": "Father's Qualification",
+    "Mother's occupation": "Mother's Occupation",
+    "Father's occupation": "Father's Occupation",
+    'Admission grade': 'Admission Grade', 'Displaced': 'Displaced Student',
+    'Educational special needs': 'Special Educational Needs',
+    'Debtor': 'Has Outstanding Debt', 'Tuition fees up to date': 'Tuition Fees Up to Date',
+    'Gender': 'Gender', 'Scholarship holder': 'Scholarship Holder',
+    'Age at enrollment': 'Age at Enrolment', 'International': 'International Student',
+    'Curricular units 1st sem (credited)': '1st Sem Units Credited',
+    'Curricular units 1st sem (enrolled)': '1st Sem Units Enrolled',
+    'Curricular units 1st sem (evaluations)': '1st Sem Evaluations',
+    'Curricular units 1st sem (approved)': '1st Sem Units Approved',
+    'Curricular units 1st sem (grade)': '1st Sem Average Grade',
+    'Curricular units 1st sem (without evaluations)': '1st Sem Without Evaluations',
+    'Curricular units 2nd sem (credited)': '2nd Sem Units Credited',
+    'Curricular units 2nd sem (enrolled)': '2nd Sem Units Enrolled',
+    'Curricular units 2nd sem (evaluations)': '2nd Sem Evaluations',
+    'Curricular units 2nd sem (approved)': '2nd Sem Units Approved',
+    'Curricular units 2nd sem (grade)': '2nd Sem Average Grade',
+    'Curricular units 2nd sem (without evaluations)': '2nd Sem Without Evaluations',
+    'Unemployment rate': 'Unemployment Rate (%)', 'Inflation rate': 'Inflation Rate (%)',
+    'GDP': 'GDP Growth (%)',
+}
+
+def _friendly(name: str) -> str:
+    """Return a human-readable label for a raw feature name."""
+    return FEATURE_LABELS.get(name, name.replace('_', ' ').title())
+
 @st.cache_resource
 def load_model_artifacts(dataset_name):
     with open(MODELS_DIR / f"{dataset_name}_model.pkl",    "rb") as f: model    = pickle.load(f)
     with open(MODELS_DIR / f"{dataset_name}_explainer.pkl","rb") as f: explainer= pickle.load(f)
     with open(MODELS_DIR / f"{dataset_name}_pipeline.pkl", "rb") as f: pipeline = pickle.load(f)
+    # Rebuild explainer: wrap predict so SHAP's internal numpy arrays get
+    # column names back (stacking ensembles need named features).
+    bg_raw = explainer.data.data if hasattr(explainer.data, 'data') else np.array(explainer.data)
+    bg_df = pd.DataFrame(bg_raw, columns=pipeline['selected_features'])
+    cols = list(pipeline['selected_features'])
+    if hasattr(model, 'predict_proba'):
+        _raw = model.predict_proba
+        def predict_fn(X):
+            return _raw(pd.DataFrame(X, columns=cols))
+    else:
+        _raw = model.predict
+        def predict_fn(X):
+            return _raw(pd.DataFrame(X, columns=cols))
+    explainer = shap.KernelExplainer(predict_fn, bg_df)
     return model, explainer, pipeline
 
 # ── Page header ───────────────────────────────────────────────────────────────
@@ -374,37 +454,143 @@ cat_cols     = pipeline['cat_cols']
 num_cols     = pipeline['num_cols']
 cat_classes  = pipeline.get('cat_classes', {})
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
-st.sidebar.markdown("## Student Profile Builder")
-st.sidebar.markdown("<div style='height:1px;background:rgba(99,102,241,0.2);margin:0.5rem 0 1rem'></div>", unsafe_allow_html=True)
+# ── Student Profile Builder (inline) ──────────────────────────────────────────
+SVG_USER = "<svg viewBox='0 0 24 24'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>"
+st.markdown(f"""<div class='section-label' style='margin-top:0.5rem'><span class='section-icon'>{SVG_USER}</span>Student Profile Builder</div>""", unsafe_allow_html=True)
 
-def _max_val(f):
-    fl = f.lower()
-    if any(k in fl for k in ["absences","score","hands","visited","discussion","view","mean","median","max_score","min_score","std","submit"]): return 100.0
-    if "credits" in fl: return 300.0
-    if "attempts" in fl: return 10.0
-    return 20.0
+# Ordinal features displayed as descriptive dropdowns: {feature: {label: value}}
+ORDINAL_OPTIONS = {
+    'Medu': {
+        "None (0)": 0, "Primary – 4th Grade (1)": 1,
+        "5th to 9th Grade (2)": 2, "Secondary Education (3)": 3,
+        "Higher Education (4)": 4,
+    },
+    'Fedu': {
+        "None (0)": 0, "Primary – 4th Grade (1)": 1,
+        "5th to 9th Grade (2)": 2, "Secondary Education (3)": 3,
+        "Higher Education (4)": 4,
+    },
+    'traveltime': {
+        "Under 15 minutes": 1, "15 – 30 minutes": 2,
+        "30 min – 1 hour": 3, "Over 1 hour": 4,
+    },
+    'studytime': {
+        "Under 2 hours / week": 1, "2 – 5 hours / week": 2,
+        "5 – 10 hours / week": 3, "Over 10 hours / week": 4,
+    },
+    'famrel': {
+        "1 – Very Bad": 1, "2 – Bad": 2, "3 – Average": 3,
+        "4 – Good": 4, "5 – Excellent": 5,
+    },
+    'freetime': {
+        "1 – Very Low": 1, "2 – Low": 2, "3 – Average": 3,
+        "4 – High": 4, "5 – Very High": 5,
+    },
+    'goout': {
+        "1 – Very Low": 1, "2 – Low": 2, "3 – Average": 3,
+        "4 – High": 4, "5 – Very High": 5,
+    },
+    'Dalc': {
+        "1 – Very Low": 1, "2 – Low": 2, "3 – Moderate": 3,
+        "4 – High": 4, "5 – Very High": 5,
+    },
+    'Walc': {
+        "1 – Very Low": 1, "2 – Low": 2, "3 – Moderate": 3,
+        "4 – High": 4, "5 – Very High": 5,
+    },
+    'health': {
+        "1 – Very Poor": 1, "2 – Poor": 3, "3 – Average": 3,
+        "4 – Good": 4, "5 – Very Good": 5,
+    },
+    'failures': {
+        "None": 0, "1 failure": 1, "2 failures": 2,
+        "3 failures": 3, "4 or more": 4,
+    },
+}
+
+# Per-feature slider configuration for remaining numeric features: (min, max, default, step)
+SLIDER_CONFIG = {
+    # ── UCI Student Performance ──────────────────────────────
+    'age':        (15.0, 22.0, 17.0, 1.0),
+    'absences':   (0.0, 93.0, 4.0, 1.0),
+    'G1':         (0.0, 20.0, 10.0, 1.0),
+    'G2':         (0.0, 20.0, 10.0, 1.0),
+    # ── xAPI Educational Data ────────────────────────────────
+    'raisedhands':       (0.0, 100.0, 50.0, 1.0),
+    'VisITedResources':  (0.0, 100.0, 50.0, 1.0),
+    'AnnouncementsView': (0.0, 100.0, 50.0, 1.0),
+    'Discussion':        (0.0, 100.0, 50.0, 1.0),
+    # ── UCI Dropout & Academic Success ───────────────────────
+    'Application mode':       (1.0, 57.0, 1.0, 1.0),
+    'Application order':      (0.0, 9.0, 1.0, 1.0),
+    'Previous qualification': (1.0, 43.0, 1.0, 1.0),
+    'Previous qualification (grade)': (0.0, 200.0, 130.0, 1.0),
+    "Mother's qualification": (1.0, 44.0, 19.0, 1.0),
+    "Father's qualification": (1.0, 44.0, 19.0, 1.0),
+    "Mother's occupation":    (0.0, 46.0, 5.0, 1.0),
+    "Father's occupation":    (0.0, 46.0, 5.0, 1.0),
+    'Admission grade':        (0.0, 200.0, 130.0, 1.0),
+    'Age at enrollment':      (17.0, 70.0, 20.0, 1.0),
+    'Curricular units 1st sem (credited)':            (0.0, 20.0, 0.0, 1.0),
+    'Curricular units 1st sem (enrolled)':            (0.0, 26.0, 6.0, 1.0),
+    'Curricular units 1st sem (evaluations)':         (0.0, 45.0, 8.0, 1.0),
+    'Curricular units 1st sem (approved)':            (0.0, 26.0, 5.0, 1.0),
+    'Curricular units 1st sem (grade)':               (0.0, 19.0, 12.0, 0.5),
+    'Curricular units 1st sem (without evaluations)': (0.0, 12.0, 0.0, 1.0),
+    'Curricular units 2nd sem (credited)':            (0.0, 19.0, 0.0, 1.0),
+    'Curricular units 2nd sem (enrolled)':            (0.0, 23.0, 6.0, 1.0),
+    'Curricular units 2nd sem (evaluations)':         (0.0, 33.0, 8.0, 1.0),
+    'Curricular units 2nd sem (approved)':            (0.0, 22.0, 5.0, 1.0),
+    'Curricular units 2nd sem (grade)':               (0.0, 19.0, 12.0, 0.5),
+    'Curricular units 2nd sem (without evaluations)': (0.0, 12.0, 0.0, 1.0),
+    'Unemployment rate':  (0.0, 25.0, 11.0, 0.1),
+    'Inflation rate':     (-2.0, 5.0, 1.0, 0.1),
+    'GDP':                (-5.0, 5.0, 1.0, 0.1),
+}
+
+def _slider_range(feature):
+    """Return (min, max, default, step) for a feature, with sensible fallback."""
+    return SLIDER_CONFIG.get(feature, (0.0, 20.0, 10.0, 1.0))
+
+def _render_feature(feature, suffix=""):
+    """Render a single feature widget and return the raw value for the model."""
+    label = _friendly(feature)
+    key = feature + suffix
+    # 1. Ordinal features → descriptive dropdown, store numeric value
+    if feature in ORDINAL_OPTIONS:
+        opts = ORDINAL_OPTIONS[feature]
+        labels = list(opts.keys())
+        default_idx = len(labels) // 2
+        choice = st.selectbox(label, labels, index=default_idx, key=key)
+        return opts[choice]
+    # 2. Numeric features → slider with correct range
+    if feature in num_cols:
+        lo, hi, default, step = _slider_range(feature)
+        return st.slider(label, lo, hi, default, step=step, key=key)
+    # 3. Categorical features → dropdown with dataset classes
+    if feature in cat_cols:
+        classes = cat_classes.get(feature, ["Unknown"])
+        return st.selectbox(label, classes, key=key)
+    return None
 
 user_input = {}
 half = len(raw_features) // 2
 
-with st.sidebar.expander("Academic & Demographics", expanded=True):
-    for feature in raw_features[:half]:
-        if feature in num_cols:
-            mv = _max_val(feature)
-            user_input[feature] = st.slider(feature.replace("_"," ").title(), 0.0, mv, mv/2, key=feature)
-        elif feature in cat_cols:
-            classes = cat_classes.get(feature, ["Unknown"])
-            user_input[feature] = st.selectbox(feature.replace("_"," ").title(), classes, key=feature)
+prof_col1, prof_col2 = st.columns(2, gap="large")
+with prof_col1:
+    with st.expander("Academic & Demographics", expanded=True):
+        for feature in raw_features[:half]:
+            val = _render_feature(feature)
+            if val is not None:
+                user_input[feature] = val
 
-with st.sidebar.expander("Behavioural & Engagement", expanded=True):
-    for feature in raw_features[half:]:
-        if feature in num_cols:
-            mv = _max_val(feature)
-            user_input[feature] = st.slider(feature.replace("_"," ").title(), 0.0, mv, mv/2, key=feature+"_b")
-        elif feature in cat_cols:
-            classes = cat_classes.get(feature, ["Unknown"])
-            user_input[feature] = st.selectbox(feature.replace("_"," ").title(), classes, key=feature+"_b")
+with prof_col2:
+    with st.expander("Behavioural & Engagement", expanded=True):
+        for feature in raw_features[half:]:
+            val = _render_feature(feature, suffix="_b")
+            if val is not None:
+                user_input[feature] = val
+
 
 # ── Preprocessing ─────────────────────────────────────────────────────────────
 input_df = pd.DataFrame([user_input])
@@ -416,9 +602,8 @@ if cat_cols:
 input_df_scaled   = pd.DataFrame(pipeline['scaler'].transform(input_df), columns=input_df.columns)
 input_df_selected = input_df_scaled[pipeline['selected_features']]
 
-# ── Results layout ────────────────────────────────────────────────────────────
+# ── Results layout — full-width stacked for readability ───────────────────────
 st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-res_col, shap_col = st.columns([1, 2], gap="large")
 
 # class info — covers both xAPI (0=Low,1=Med,2=High) and Dropout (0=Dropout,1=Enrolled,2=Graduate)
 class_info = {
@@ -428,40 +613,41 @@ class_info = {
     3: ("Distinction",      "out-distinction",  "<svg viewBox='0 0 24 24'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>",         "#fbbf24"),
 }
 
-with res_col:
-    st.markdown("<div class='result-card'><div class='result-card-title'><span class='section-icon'><svg viewBox='0 0 24 24'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg></span>Prediction Result</div>", unsafe_allow_html=True)
+# ── Prediction result (full width) ────────────────────────────────────────────
+st.markdown("<div class='result-card'><div class='result-card-title'><span class='section-icon'><svg viewBox='0 0 24 24'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg></span>Prediction Result</div>", unsafe_allow_html=True)
 
-    if task_type == 'regression':
-        pred = model.predict(input_df_selected)[0]
-        if pred >= 16:   band, cls, icon = "Excellent", "out-high",        "<svg viewBox='0 0 24 24'><circle cx='12' cy='8' r='6'/><path d='M15.477 12.89L17 22l-5-3-5 3 1.523-9.11'/></svg>"
-        elif pred >= 12: band, cls, icon = "Good",      "out-high",        "<svg viewBox='0 0 24 24'><polyline points='22 7 13.5 15.5 8.5 10.5 2 17'/><polyline points='16 7 22 7 22 13'/></svg>"
-        elif pred >= 8:  band, cls, icon = "Moderate",  "out-medium",      "<svg viewBox='0 0 24 24'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg>"
-        else:            band, cls, icon = "At Risk",   "out-low",         "<svg viewBox='0 0 24 24'><path d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>"
-        st.markdown(f"""
-        <div class="outcome-display {cls}">
-            <div class="outcome-icon">{icon}</div>
-            <span class="outcome-label">G3 Score: {pred:.1f} / 20</span>
-            <span class="outcome-sub">Performance Band: {band}</span>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        pred_probs = model.predict_proba(input_df_selected)[0]
-        pred_class = model.predict(input_df_selected)[0]
-        label, cls, icon, _ = class_info.get(int(pred_class), ("Unknown", "out-medium", "<svg viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/><path d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>", "#94a3b8"))
-        st.markdown(f"""
-        <div class="outcome-display {cls}">
-            <div class="outcome-icon">{icon}</div>
-            <span class="outcome-label">{label}</span>
-            <span class="outcome-sub">Predicted Performance Class</span>
-        </div>
-        """, unsafe_allow_html=True)
+if task_type == 'regression':
+    pred = model.predict(input_df_selected)[0]
+    if pred >= 16:   band, cls, icon = "Excellent", "out-high",        "<svg viewBox='0 0 24 24'><circle cx='12' cy='8' r='6'/><path d='M15.477 12.89L17 22l-5-3-5 3 1.523-9.11'/></svg>"
+    elif pred >= 12: band, cls, icon = "Good",      "out-high",        "<svg viewBox='0 0 24 24'><polyline points='22 7 13.5 15.5 8.5 10.5 2 17'/><polyline points='16 7 22 7 22 13'/></svg>"
+    elif pred >= 8:  band, cls, icon = "Moderate",  "out-medium",      "<svg viewBox='0 0 24 24'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg>"
+    else:            band, cls, icon = "At Risk",   "out-low",         "<svg viewBox='0 0 24 24'><path d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>"
+    st.markdown(f"""
+    <div class="outcome-display {cls}">
+        <div class="outcome-icon">{icon}</div>
+        <span class="outcome-label">G3 Score: {pred:.1f} / 20</span>
+        <span class="outcome-sub">Performance Band: {band}</span>
+    </div>
+    """, unsafe_allow_html=True)
+else:
+    pred_probs = model.predict_proba(input_df_selected)[0]
+    pred_class = model.predict(input_df_selected)[0]
+    label, cls, icon, _ = class_info.get(int(pred_class), ("Unknown", "out-medium", "<svg viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/><path d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>", "#94a3b8"))
+    st.markdown(f"""
+    <div class="outcome-display {cls}">
+        <div class="outcome-icon">{icon}</div>
+        <span class="outcome-label">{label}</span>
+        <span class="outcome-sub">Predicted Performance Class</span>
+    </div>
+    """, unsafe_allow_html=True)
 
-        # Confidence bars (custom rendered)
-        st.markdown('<div class="conf-section-label">Ensemble Confidence</div>', unsafe_allow_html=True)
-        for i, p in enumerate(pred_probs):
-            lbl, _, ico, col = class_info.get(i, (f"Class {i}", "", "", "#818cf8"))
-            pct = p * 100
-            fill_w = f"{pct:.1f}%"
+    # Confidence bars (custom rendered)
+    conf_cols = st.columns(len(pred_probs))
+    for i, (p, cc) in enumerate(zip(pred_probs, conf_cols)):
+        lbl, _, ico, col = class_info.get(i, (f"Class {i}", "", "", "#818cf8"))
+        pct = p * 100
+        fill_w = f"{pct:.1f}%"
+        with cc:
             st.markdown(f"""
             <div class="conf-item">
                 <div class="conf-top">
@@ -474,66 +660,69 @@ with res_col:
             </div>
             """, unsafe_allow_html=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
-with shap_col:
+# ── SHAP Force Plot (full width for readability) ──────────────────────────────
+# Rename features to human-readable labels for the SHAP display
+input_display = input_df_selected.rename(columns=FEATURE_LABELS)
+
+st.markdown("""
+<div class="shap-panel">
+    <div class="shap-panel-title"><span class="section-icon"><svg viewBox='0 0 24 24'><rect x='4' y='4' width='16' height='16' rx='2'/><rect x='9' y='9' width='6' height='6'/><line x1='9' y1='2' x2='9' y2='4'/><line x1='15' y1='2' x2='15' y2='4'/><line x1='9' y1='20' x2='9' y2='22'/><line x1='15' y1='20' x2='15' y2='22'/><line x1='20' y1='9' x2='22' y2='9'/><line x1='20' y1='14' x2='22' y2='14'/><line x1='2' y1='9' x2='4' y2='9'/><line x1='2' y1='14' x2='4' y2='14'/></svg></span>SHAP Force Plot — Why this prediction?</div>
+    <div class="shap-legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:#ef4444;"></div>Pushes higher</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#3b82f6;"></div>Pushes lower</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#334155;"></div>Width = magnitude</div>
+    </div>
+""", unsafe_allow_html=True)
+
+with st.spinner("Computing SHAP explanation..."):
+    shap_values = explainer.shap_values(input_df_selected, nsamples=200)
+    try:
+        if task_type == 'regression':
+            val     = shap_values[0] if isinstance(shap_values, list) else shap_values
+            exp_val = explainer.expected_value
+            st_shap(shap.force_plot(float(exp_val), val, input_display), height=280)
+        else:
+            if isinstance(shap_values, list):
+                val     = shap_values[int(pred_class)]
+                exp_val = (explainer.expected_value[int(pred_class)]
+                           if hasattr(explainer.expected_value, '__len__')
+                           else explainer.expected_value)
+            else:
+                val     = shap_values
+                exp_val = explainer.expected_value
+            st_shap(shap.force_plot(float(exp_val), val, input_display), height=280)
+    except Exception as e:
+        st.warning(f"Force plot unavailable: {e}")
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ── Feature contributions table (full width) ──────────────────────────────────
+st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+try:
+    if isinstance(shap_values, list):
+        sv = shap_values[int(pred_class)] if task_type == 'classification' else shap_values[0]
+    else:
+        sv = shap_values
+    sv_flat = np.array(sv).flatten()
+    feat_imp = pd.DataFrame({
+        "Feature":    [_friendly(f) for f in pipeline['selected_features']],
+        "SHAP Value": sv_flat,
+        "Impact":     ["↑ Increases" if v > 0 else "↓ Decreases" for v in sv_flat],
+    }).reindex(pd.Series(np.abs(sv_flat)).sort_values(ascending=False).index)
+
     st.markdown("""
     <div class="shap-panel">
-        <div class="shap-panel-title"><span class="section-icon"><svg viewBox='0 0 24 24'><rect x='4' y='4' width='16' height='16' rx='2'/><rect x='9' y='9' width='6' height='6'/><line x1='9' y1='2' x2='9' y2='4'/><line x1='15' y1='2' x2='15' y2='4'/><line x1='9' y1='20' x2='9' y2='22'/><line x1='15' y1='20' x2='15' y2='22'/><line x1='20' y1='9' x2='22' y2='9'/><line x1='20' y1='14' x2='22' y2='14'/><line x1='2' y1='9' x2='4' y2='9'/><line x1='2' y1='14' x2='4' y2='14'/></svg></span>SHAP Force Plot — Why this prediction?</div>
-        <div class="shap-legend">
-            <div class="legend-item"><div class="legend-swatch" style="background:#ef4444;"></div>Pushes higher</div>
-            <div class="legend-item"><div class="legend-swatch" style="background:#3b82f6;"></div>Pushes lower</div>
-            <div class="legend-item"><div class="legend-swatch" style="background:#334155;"></div>Width = magnitude</div>
-        </div>
+        <div class="shap-panel-title"><span class="section-icon"><svg viewBox='0 0 24 24'><line x1='8' y1='6' x2='21' y2='6'/><line x1='8' y1='12' x2='21' y2='12'/><line x1='8' y1='18' x2='21' y2='18'/><line x1='3' y1='6' x2='3.01' y2='6'/><line x1='3' y1='12' x2='3.01' y2='12'/><line x1='3' y1='18' x2='3.01' y2='18'/></svg></span>Top Feature Contributions</div>
     """, unsafe_allow_html=True)
-
-    with st.spinner("Computing SHAP explanation..."):
-        shap_values = explainer.shap_values(input_df_selected)
-        try:
-            if task_type == 'regression':
-                val     = shap_values[0] if isinstance(shap_values, list) else shap_values
-                exp_val = explainer.expected_value
-                st_shap(shap.force_plot(float(exp_val), val, input_df_selected), height=180)
-            else:
-                if isinstance(shap_values, list):
-                    val     = shap_values[int(pred_class)]
-                    exp_val = (explainer.expected_value[int(pred_class)]
-                               if hasattr(explainer.expected_value, '__len__')
-                               else explainer.expected_value)
-                else:
-                    val     = shap_values
-                    exp_val = explainer.expected_value
-                st_shap(shap.force_plot(float(exp_val), val, input_df_selected), height=180)
-        except Exception as e:
-            st.warning(f"Force plot unavailable: {e}")
-
+    st.dataframe(
+        feat_imp.head(10)
+            .style.background_gradient(subset=["SHAP Value"], cmap="RdYlGn")
+            .format({"SHAP Value": "{:.4f}"}),
+        use_container_width=True,
+        hide_index=True,
+    )
     st.markdown('</div>', unsafe_allow_html=True)
-
-    # Feature contributions table
-    st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
-    try:
-        if isinstance(shap_values, list):
-            sv = shap_values[int(pred_class)] if task_type == 'classification' else shap_values[0]
-        else:
-            sv = shap_values
-        sv_flat = np.array(sv).flatten()
-        feat_imp = pd.DataFrame({
-            "Feature":    pipeline['selected_features'],
-            "SHAP Value": sv_flat,
-            "Impact":     ["↑ Increases" if v > 0 else "↓ Decreases" for v in sv_flat],
-        }).reindex(pd.Series(np.abs(sv_flat)).sort_values(ascending=False).index)
-
-        st.markdown("""
-        <div class="shap-panel">
-            <div class="shap-panel-title"><span class="section-icon"><svg viewBox='0 0 24 24'><line x1='8' y1='6' x2='21' y2='6'/><line x1='8' y1='12' x2='21' y2='12'/><line x1='8' y1='18' x2='21' y2='18'/><line x1='3' y1='6' x2='3.01' y2='6'/><line x1='3' y1='12' x2='3.01' y2='12'/><line x1='3' y1='18' x2='3.01' y2='18'/></svg></span>Top Feature Contributions</div>
-        """, unsafe_allow_html=True)
-        st.dataframe(
-            feat_imp.head(8)
-                .style.background_gradient(subset=["SHAP Value"], cmap="RdYlGn")
-                .format({"SHAP Value": "{:.4f}"}),
-            use_container_width=True,
-            hide_index=True,
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
-    except Exception:
-        pass
+except Exception:
+    pass

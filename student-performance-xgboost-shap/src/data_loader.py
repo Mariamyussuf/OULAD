@@ -119,6 +119,45 @@ class DatasetLoader:
         df = df[valid].copy()
         y  = y[valid].copy()
 
+        # Map integer codes to string labels for readability and to force categorical classification in ML pipeline
+        mapping = {
+            'Marital status': {
+                1: "Single", 2: "Married", 3: "Widower", 
+                4: "Divorced", 5: "Facto Union", 6: "Legally Separated"
+            },
+            'Daytime/evening attendance': {
+                1: "Daytime", 0: "Evening"
+            },
+            'Gender': {
+                1: "Male", 0: "Female"
+            },
+            'Displaced': {1: "Yes", 0: "No"},
+            'Educational special needs': {1: "Yes", 0: "No"},
+            'Debtor': {1: "Yes", 0: "No"},
+            'Tuition fees up to date': {1: "Yes", 0: "No"},
+            'Scholarship holder': {1: "Yes", 0: "No"},
+            'International': {1: "Yes", 0: "No"},
+            'Course': {
+                33: "Biofuel Tech", 171: "Animation/Multimedia", 8014: "Social Service (Eve)",
+                9003: "Agronomy", 9070: "Communication Design", 9085: "Veterinary Nursing",
+                9119: "Basic Education", 9130: "Equiniculture", 9147: "Management",
+                9238: "Social Service", 9254: "Tourism", 9500: "Nursing", 9556: "Oral Hygiene",
+                9670: "Ad & Marketing Management", 9773: "Journalism/Communication",
+                9853: "Basic Education (Eve)", 9991: "Management (Eve)"
+            },
+            'Nacionality': {
+                1: "Portuguese", 2: "Brazilian", 6: "Spanish", 11: "Italian",
+                13: "Dutch", 14: "English", 17: "Lithuanian", 21: "Angolan",
+                22: "Cape Verdean", 24: "Guinean", 25: "Mozambican", 
+                26: "Santomean", 32: "Turkish", 41: "Moldovan", 
+                101: "Mexican", 103: "Ukrainian", 105: "Russian", 
+                108: "Cuban", 109: "Colombian"
+            }
+        }
+        for col, mapper in mapping.items():
+            if col in df.columns:
+                df[col] = df[col].map(mapper).fillna("Other").astype(str)
+
         X = df.drop(columns=['Target'])
 
         logger.info(

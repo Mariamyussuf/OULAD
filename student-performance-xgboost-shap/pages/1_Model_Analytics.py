@@ -301,6 +301,23 @@ p { color: #94a3b8; line-height: 1.7; }
 .gap-good { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.3); color: #34d399; }
 .gap-warn { background: rgba(251,191,36,0.12);  border: 1px solid rgba(251,191,36,0.3);  color: #fbbf24; }
 .gap-bad  { background: rgba(251,113,133,0.12); border: 1px solid rgba(251,113,133,0.3); color: #fb7185; }
+
+/* ── Expander styling ────────────────────── */
+[data-testid="stExpander"] {
+    background: rgba(255,255,255,0.02) !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 12px !important;
+    margin-bottom: 1rem !important;
+}
+[data-testid="stExpander"] summary { color: #c7d2fe !important; font-weight: 700 !important; font-size: 0.86rem !important; }
+[data-testid="stExpander"] > div > div { border-top: 1px solid rgba(99,102,241,0.12) !important; }
+
+/* ── Widget label overrides ──────────────── */
+.stSelectbox label, .stSlider label, .stCheckbox label {
+    color: #94a3b8 !important;
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -324,6 +341,36 @@ st.markdown("""
        ROC Curves · Global SHAP Feature Importance</p>
 </div>
 """, unsafe_allow_html=True)
+
+# ── Presentation Settings (inline) ────────────────────────────────────────────
+with st.expander("📊 Presentation Controls", expanded=False):
+    pc1, pc2, pc3, pc4 = st.columns(4)
+    with pc1:
+        chart_theme = st.selectbox(
+            "Chart Theme Style",
+            ["High-Contrast Light (For Slides/Projectors)", "EduPredict Dark (Seamless Dashboard Theme)"],
+            help="Under bright classroom or auditorium lights, a white-background chart has much better visibility."
+        )
+    with pc2:
+        font_scale = st.select_slider(
+            "Label Font Size Scale",
+            options=["Standard", "Large", "Extra Large"],
+            value="Standard",
+            help="Increase this if people in the back rows cannot read the labels."
+        )
+    with pc3:
+        num_features = st.slider(
+            "Max Features to Display",
+            min_value=5,
+            max_value=20,
+            value=15,
+            help="Show more or fewer variables in the driver list."
+        )
+    with pc4:
+        show_grid = st.checkbox(
+            "Show Vertical Grid Lines",
+            value=True
+        )
 
 # ── Dataset tabs ──────────────────────────────────────────────────────────────
 datasets = [
@@ -451,9 +498,23 @@ for tab, (name, key, task, ico, colour, cv_known, std_known, test_known) in zip(
                     with open(explainer_path, "rb") as f: explainer = pickle.load(f)
                     with open(pipeline_path,  "rb") as f: pl = pickle.load(f)
 
-                    bg_data = explainer.data
-                    bg_df   = pd.DataFrame(bg_data, columns=pl['selected_features'])
-                    shap_vals = explainer.shap_values(bg_df)
+                    # Rebuild explainer: wrap predict so SHAP's internal numpy arrays
+                    # get column names back (stacking ensembles need named features).
+                    bg_raw = explainer.data.data if hasattr(explainer.data, 'data') else np.array(explainer.data)
+                    bg_df  = pd.DataFrame(bg_raw, columns=pl['selected_features'])
+                    model_path = MODELS_DIR / f"{key}_model.pkl"
+                    with open(model_path, "rb") as f: mdl = pickle.load(f)
+                    cols = list(pl['selected_features'])
+                    if hasattr(mdl, 'predict_proba'):
+                        _raw_fn = mdl.predict_proba
+                        def _predict(X, _fn=_raw_fn, _c=cols):
+                            return _fn(pd.DataFrame(X, columns=_c))
+                    else:
+                        _raw_fn = mdl.predict
+                        def _predict(X, _fn=_raw_fn, _c=cols):
+                            return _fn(pd.DataFrame(X, columns=_c))
+                    explainer = shap.KernelExplainer(_predict, bg_df)
+                    shap_vals = explainer.shap_values(bg_df, nsamples=200)
 
                     if isinstance(shap_vals, list):
                         mean_shap = np.mean([np.abs(sv) for sv in shap_vals], axis=0)
@@ -462,21 +523,46 @@ for tab, (name, key, task, ico, colour, cv_known, std_known, test_known) in zip(
 
                     mean_per_feature = mean_shap.mean(axis=0)
                     feat_names = pl['selected_features']
-                    sorted_idx = np.argsort(mean_per_feature)[-15:]
+                    sorted_idx = np.argsort(mean_per_feature)[-num_features:]
+
+                    # ── Map presentation settings ──
+                    is_light = "High-Contrast Light" in chart_theme
+                    
+                    # Backgrounds and colors
+                    BG = '#ffffff' if is_light else '#04021a'
+                    TEXT_COLOR = '#000000' if is_light else '#cbd5e1'
+                    LABEL_COLOR = '#1e293b' if is_light else '#94a3b8'
+                    TITLE_COLOR = '#0f172a' if is_light else '#c7d2fe'
+                    GRID_COLOR = '#e2e8f0' if is_light else '#1e2040'
+                    BAR_LABEL_COLOR = '#0f172a' if is_light else '#cbd5e1'
+                    
+                    # Font sizes mapping
+                    if font_scale == "Extra Large":
+                        sz_title, sz_label, sz_ticks, sz_bars = 16.0, 13.0, 12.0, 11.0
+                    elif font_scale == "Large":
+                        sz_title, sz_label, sz_ticks, sz_bars = 13.0, 11.0, 10.0, 9.0
+                    else: # Standard
+                        sz_title, sz_label, sz_ticks, sz_bars = 10.5, 8.5, 8.0, 7.5
 
                     # ── Chart ──────────────────────────────────────────────
                     fig, ax = plt.subplots(figsize=(9, 5))
-                    BG = '#04021a'
                     fig.patch.set_facecolor(BG)
                     ax.set_facecolor(BG)
 
                     vals = mean_per_feature[sorted_idx]
                     norm_vals = vals / (vals.max() + 1e-9)
-                    # Use a vivid purple→cyan gradient instead of 'cool'
+                    
                     from matplotlib.colors import LinearSegmentedColormap
-                    _cmap = LinearSegmentedColormap.from_list(
-                        'ep', ['#4f46e5', '#818cf8', '#22d3ee'], N=256
-                    )
+                    if is_light:
+                        # Deep Indigo to Cyan (high contrast for light background)
+                        _cmap = LinearSegmentedColormap.from_list(
+                            'ep', ['#312e81', '#4f46e5', '#06b6d4'], N=256
+                        )
+                    else:
+                        # Vivid Purple to Cyan
+                        _cmap = LinearSegmentedColormap.from_list(
+                            'ep', ['#4f46e5', '#818cf8', '#22d3ee'], N=256
+                        )
                     bar_colors = [_cmap(v) for v in norm_vals]
 
                     bars = ax.barh(
@@ -493,22 +579,41 @@ for tab, (name, key, task, ico, colour, cv_known, std_known, test_known) in zip(
                             bar.get_width() + vals.max() * 0.012,
                             bar.get_y() + bar.get_height() / 2,
                             f"{v:.4f}", va='center', ha='left',
-                            color='#64748b', fontsize=7.5,
-                            fontfamily='monospace'
+                            color=BAR_LABEL_COLOR, fontsize=sz_bars,
+                            fontfamily='monospace', fontweight='bold' if is_light else 'normal'
                         )
 
-                    ax.set_xlabel("Mean |SHAP Value|", color='#475569', fontsize=8.5, labelpad=8)
-                    ax.set_title(f"Top Feature Drivers — {name}", color='#c7d2fe', fontsize=10.5, fontweight='bold', pad=14)
-                    ax.tick_params(colors='#64748b', labelsize=8)
+                    ax.set_xlabel("Mean |SHAP Value|", color=LABEL_COLOR, fontsize=sz_label, labelpad=8)
+                    ax.set_title(f"Top Feature Drivers — {name}", color=TITLE_COLOR, fontsize=sz_title, fontweight='bold', pad=14)
+                    ax.tick_params(colors=TEXT_COLOR, labelsize=sz_ticks)
                     ax.set_xlim(0, vals.max() * 1.22)
                     for spine in ax.spines.values():
                         spine.set_visible(False)
                     ax.xaxis.set_tick_params(length=0)
                     ax.yaxis.set_tick_params(length=0)
-                    # Fix: matplotlib grid color must be a valid color, not rgba() CSS string
-                    ax.grid(axis='x', color='#1e2040', linewidth=0.8)
+                    
+                    if show_grid:
+                        ax.grid(axis='x', color=GRID_COLOR, linewidth=0.8)
+                    else:
+                        ax.grid(False)
                     plt.tight_layout(pad=0.8)
 
+                    if is_light:
+                        st.markdown("""
+                        <style>
+                        .shap-global-panel {
+                            background: #ffffff !important;
+                            border: 1px solid #e2e8f0 !important;
+                            box-shadow: 0 10px 30px rgba(0,0,0,0.06) !important;
+                        }
+                        .shap-global-title {
+                            color: #0f172a !important;
+                        }
+                        .shap-global-title::after {
+                            background: linear-gradient(90deg, rgba(15,23,42,0.15), transparent) !important;
+                        }
+                        </style>
+                        """, unsafe_allow_html=True)
                     st.markdown(f"<div class='shap-global-panel'><div class='shap-global-title'><span class='section-icon'>{SVG_TARGET_SM}</span>Global SHAP Bar Chart</div>", unsafe_allow_html=True)
                     st.pyplot(fig, use_container_width=True)
                     plt.close(fig)

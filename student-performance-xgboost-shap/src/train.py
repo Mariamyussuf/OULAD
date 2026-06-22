@@ -179,17 +179,8 @@ class ModelTrainer:
         logger.info("Building SHAP KernelExplainer (using sampled background)...")
         bg_size = min(50, len(X_train_selected))
         background = X_train_selected.sample(n=bg_size, random_state=42).reset_index(drop=True)
-        # Wrap predict so SHAP's internal numpy arrays always get column names
-        feat_cols = list(X_train_selected.columns)
-        if task_type == 'regression':
-            _raw_predict = model.predict
-            def predict_fn(X, _fn=_raw_predict, _c=feat_cols):
-                return _fn(pd.DataFrame(X, columns=_c))
-        else:
-            _raw_predict = model.predict_proba
-            def predict_fn(X, _fn=_raw_predict, _c=feat_cols):
-                return _fn(pd.DataFrame(X, columns=_c))
-        explainer = shap.KernelExplainer(predict_fn, background)
+        raw_pred_fn = model.predict if task_type == 'regression' else model.predict_proba
+        explainer = shap.KernelExplainer(raw_pred_fn, background)
 
         # ---- 13. Save artifacts -------------------------------------------
         self._save_artifacts(

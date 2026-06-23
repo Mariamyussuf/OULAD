@@ -582,8 +582,8 @@ st.markdown("""
     <div class="hero-tag"><svg viewBox='0 0 24 24'><path d='M22 10L12 4 2 10l10 6 10-6z'/><path d='M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5'/></svg>Final Year Project · B.Tech Computer Science</div>
     <div class="hero-title">EduPredict<br>Analytics Platform</div>
     <p class="hero-sub">
-        <strong style="color:#a5b4fc;">Student performance prediction using XGBoost</strong>
-        enhanced with <strong style="color:#e879f9;">SHAP</strong> (SHapley Additive exPlanations).
+        <strong style="color:#38BDF8;">Student performance prediction using XGBoost</strong>
+        enhanced with <strong style="color:#34D399;">SHAP</strong> (SHapley Additive exPlanations).
         Classification stacks diverse tree learners with a <strong>tuned XGBoost meta-learner</strong>;
         SHAP explains every prediction across benchmark educational datasets.
     </p>

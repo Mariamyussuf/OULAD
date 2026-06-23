@@ -3,6 +3,15 @@ import pickle
 import pandas as pd
 import shap
 import numpy as np
+
+# ── Monkeypatch SHAP KernelExplainer to fix empty run broadcast bug ──────────
+_orig_kernel_run = shap.explainers._kernel.KernelExplainer.run
+def _patched_kernel_run(self):
+    if self.nsamplesAdded == self.nsamplesRun:
+        return
+    return _orig_kernel_run(self)
+shap.explainers._kernel.KernelExplainer.run = _patched_kernel_run
+
 from pathlib import Path
 from streamlit_shap import st_shap
 

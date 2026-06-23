@@ -5,6 +5,15 @@ import pickle
 import pandas as pd
 import numpy as np
 import shap
+
+# ── Monkeypatch SHAP KernelExplainer to fix empty run broadcast bug ──────────
+_orig_kernel_run = shap.explainers._kernel.KernelExplainer.run
+def _patched_kernel_run(self):
+    if self.nsamplesAdded == self.nsamplesRun:
+        return
+    return _orig_kernel_run(self)
+shap.explainers._kernel.KernelExplainer.run = _patched_kernel_run
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt

@@ -62,6 +62,7 @@ p { color: #94A3B8; line-height: 1.7; }
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    text-align: center;
 }
 .page-header-tag { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #38BDF8; margin-bottom: 0.6rem; font-family: 'JetBrains Mono', monospace; }
 .page-header h1  { font-size: 1.8rem !important; font-weight: 800 !important; color: #F8FAFC !important; margin: 0 0 0.5rem 0 !important; letter-spacing: -0.02em; }
@@ -158,6 +159,11 @@ p { color: #94A3B8; line-height: 1.7; }
     border: 1px solid #1E293B;
     border-radius: 12px;
     padding: 1.4rem;
+}
+.img-panel img, .img-panel [data-testid="stImage"] {
+    background-color: #ffffff !important;
+    border-radius: 8px;
+    padding: 8px;
 }
 .img-panel-title {
     font-size: 0.72rem;
@@ -367,8 +373,12 @@ for tab, (name, key, task, ico, colour, cv_known, std_known, test_known) in zip(
             st.warning(f"No results for **{name}**. Run `python src/train.py` first.")
             continue
 
-        with open(report_path) as f:
-            raw = f.read()
+        try:
+            with open(report_path, encoding='utf-8') as f:
+                raw = f.read()
+        except UnicodeDecodeError:
+            with open(report_path, encoding='cp1252') as f:
+                raw = f.read()
 
         # ── Parse headline numbers ─────────────────────────────────────────
         cv_score, cv_std, acc, macro_f1 = None, None, None, None
@@ -504,6 +514,20 @@ for tab, (name, key, task, ico, colour, cv_known, std_known, test_known) in zip(
                     feat_names = pl['selected_features']
                     sorted_idx = np.argsort(mean_per_feature)[-num_features:]
 
+                    # Generate textual explanation for global predominant factors
+                    top_global_indices = np.argsort(mean_per_feature)[-3:][::-1]
+                    top_global_feats = [feat_names[i].replace('_', ' ').title() for i in top_global_indices]
+                    
+                    if len(top_global_feats) > 0:
+                        reasons = f"**{top_global_feats[0]}**"
+                        if len(top_global_feats) > 1:
+                            reasons += f" and **{top_global_feats[1]}**" if len(top_global_feats) == 2 else f", **{top_global_feats[1]}**"
+                        if len(top_global_feats) > 2:
+                            reasons += f", and **{top_global_feats[2]}**"
+                            
+                        global_explanation = f"<div style='background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.3); padding:1.2rem; border-radius:12px; color:#E0F2FE; margin-bottom:1.5rem; line-height:1.6; font-size:0.9rem;'><strong style='color:#38BDF8;font-size:1.05rem;'><svg viewBox='0 0 24 24' style='width:18px;height:18px;vertical-align:-3px;margin-right:6px;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'></circle><line x1='12' y1='16' x2='12' y2='12'></line><line x1='12' y1='8' x2='12.01' y2='8'></line></svg>System Predominant Factors</strong><br><br>Across the entire student population, the most significant driving factors that affect the system's predictions overall are {reasons}. These variables carry the highest average weight in determining a student's predicted outcome.</div>"
+                        st.markdown(global_explanation, unsafe_allow_html=True)
+
                     # ── Map presentation settings ──
                     is_light = "High-Contrast Light" in chart_theme
                     
@@ -594,7 +618,9 @@ for tab, (name, key, task, ico, colour, cv_known, std_known, test_known) in zip(
                         </style>
                         """, unsafe_allow_html=True)
                     st.markdown(f"<div class='shap-global-panel'><div class='shap-global-title'><span class='section-icon'>{SVG_TARGET_SM}</span>Global SHAP Bar Chart</div>", unsafe_allow_html=True)
-                    st.pyplot(fig, use_container_width=True)
+                    buf = io.BytesIO()
+                    fig.savefig(buf, format="png", bbox_inches='tight', facecolor=fig.get_facecolor(), edgecolor='none', dpi=150)
+                    st.image(buf, use_container_width=True)
                     plt.close(fig)
                     st.markdown('</div>', unsafe_allow_html=True)
 

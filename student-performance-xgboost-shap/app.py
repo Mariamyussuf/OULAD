@@ -104,6 +104,7 @@ p, li { color: #94A3B8; line-height: 1.7; }
     max-width: 640px;
     margin: 0 auto 2rem;
     line-height: 1.7;
+    text-align: center;
 }
 .hero-pills {
     display: flex;
@@ -524,7 +525,7 @@ p, li { color: #94A3B8; line-height: 1.7; }
     margin-bottom: 1.2rem;
     flex-wrap: wrap;
 }
-.legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #64748B; }
+.legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #cbd5e1; }
 .legend-swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
 
 /* ── Outcome icon wrapper ───────────────── */
@@ -572,6 +573,13 @@ p, li { color: #94A3B8; line-height: 1.7; }
 .stDataFrame { border-radius: 8px; overflow: hidden; border: 1px solid #1E293B; }
 .stSlider > div > div > div {
     background: #06B6D4 !important;
+}
+
+/* Make SHAP force plot iframe legible with a white background */
+iframe {
+    background-color: #ffffff !important;
+    border-radius: 12px;
+    padding: 10px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -683,27 +691,31 @@ with tab_predict:
     st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
     st.markdown(f"<div class='section-label'><span class='section-icon'><svg viewBox='0 0 24 24'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg></span>Configure Student Profile</div>", unsafe_allow_html=True)
 
-    col_acad, col_beh = st.columns(2, gap="large")
+    with st.form("home_prediction_form", border=False):
+        col_acad, col_beh = st.columns(2, gap="large")
 
-    with col_acad:
-        st.markdown("<h4 style='font-size:0.92rem;color:#818cf8 !important;margin-bottom:1rem;text-transform:uppercase;letter-spacing:0.08em;'>Academic & Demographics</h4>", unsafe_allow_html=True)
-        for feature in raw_features[:half]:
-            if feature in num_cols:
-                mv = _max_val(feature)
-                user_input[feature] = st.slider(feature.replace("_"," ").title(), 0.0, mv, mv/2, key=feature+"_home")
-            elif feature in cat_cols:
-                classes = cat_classes.get(feature, ["Unknown"])
-                user_input[feature] = st.selectbox(feature.replace("_"," ").title(), classes, key=feature+"_home")
+        with col_acad:
+            st.markdown("<h4 style='font-size:0.92rem;color:#818cf8 !important;margin-bottom:1rem;text-transform:uppercase;letter-spacing:0.08em;'>Academic & Demographics</h4>", unsafe_allow_html=True)
+            for feature in raw_features[:half]:
+                if feature in num_cols:
+                    mv = _max_val(feature)
+                    user_input[feature] = st.slider(feature.replace("_"," ").title(), 0.0, mv, mv/2, key=feature+"_home")
+                elif feature in cat_cols:
+                    classes = cat_classes.get(feature, ["Unknown"])
+                    user_input[feature] = st.selectbox(feature.replace("_"," ").title(), classes, key=feature+"_home")
 
-    with col_beh:
-        st.markdown("<h4 style='font-size:0.92rem;color:#818cf8 !important;margin-bottom:1rem;text-transform:uppercase;letter-spacing:0.08em;'>Behavioural & Engagement</h4>", unsafe_allow_html=True)
-        for feature in raw_features[half:]:
-            if feature in num_cols:
-                mv = _max_val(feature)
-                user_input[feature] = st.slider(feature.replace("_"," ").title(), 0.0, mv, mv/2, key=feature+"_home_b")
-            elif feature in cat_cols:
-                classes = cat_classes.get(feature, ["Unknown"])
-                user_input[feature] = st.selectbox(feature.replace("_"," ").title(), classes, key=feature+"_home_b")
+        with col_beh:
+            st.markdown("<h4 style='font-size:0.92rem;color:#818cf8 !important;margin-bottom:1rem;text-transform:uppercase;letter-spacing:0.08em;'>Behavioural & Engagement</h4>", unsafe_allow_html=True)
+            for feature in raw_features[half:]:
+                if feature in num_cols:
+                    mv = _max_val(feature)
+                    user_input[feature] = st.slider(feature.replace("_"," ").title(), 0.0, mv, mv/2, key=feature+"_home_b")
+                elif feature in cat_cols:
+                    classes = cat_classes.get(feature, ["Unknown"])
+                    user_input[feature] = st.selectbox(feature.replace("_"," ").title(), classes, key=feature+"_home_b")
+        
+        st.markdown("<div style='height: 0.5rem'></div>", unsafe_allow_html=True)
+        st.form_submit_button("Run Prediction 🚀", type="primary", use_container_width=True)
 
     # ── Preprocessing ─────────────────────────────────────────────────────────
     input_df = pd.DataFrame([user_input])
@@ -718,7 +730,8 @@ with tab_predict:
     # ── Results layout ────────────────────────────────────────────────────────
     st.markdown("<div style='height:1.5rem'></div>", unsafe_allow_html=True)
     st.markdown(f"<div class='section-label'><span class='section-icon'><svg viewBox='0 0 24 24'><polyline points='22 12 18 12 15 21 9 3 6 12 2 12'/></svg></span>Model Predictions & SHAP Explanations</div>", unsafe_allow_html=True)
-    res_col, shap_col = st.columns([1, 2], gap="large")
+    res_cont = st.container()
+    shap_cont = st.container()
 
     class_info = {
         0: ("Low / Dropout",    "out-low",         "<svg viewBox='0 0 24 24'><path d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>",        "#fb7185"),
@@ -727,7 +740,7 @@ with tab_predict:
         3: ("Distinction",      "out-distinction",  "<svg viewBox='0 0 24 24'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>",         "#fbbf24"),
     }
 
-    with res_col:
+    with res_cont:
         st.markdown("<div class='result-card'><div class='result-card-title'><span class='section-icon'><svg viewBox='0 0 24 24'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg></span>Prediction Result</div>", unsafe_allow_html=True)
 
         if task_type == 'regression':
@@ -775,7 +788,7 @@ with tab_predict:
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-    with shap_col:
+    with shap_cont:
         st.markdown("""
         <div class="shap-panel">
             <div class="shap-panel-title"><span class="section-icon"><svg viewBox='0 0 24 24'><rect x='4' y='4' width='16' height='16' rx='2'/><rect x='9' y='9' width='6' height='6'/><line x1='9' y1='2' x2='9' y2='4'/><line x1='15' y1='2' x2='15' y2='4'/><line x1='9' y1='20' x2='9' y2='22'/><line x1='15' y1='20' x2='15' y2='22'/><line x1='20' y1='9' x2='22' y2='9'/><line x1='20' y1='14' x2='22' y2='14'/><line x1='2' y1='9' x2='4' y2='9'/><line x1='2' y1='14' x2='4' y2='14'/></svg></span>SHAP Force Plot — Why this prediction?</div>
@@ -858,6 +871,24 @@ with tab_predict:
                 "SHAP Value": sv_flat,
                 "Impact":     ["↑ Increases" if v > 0 else "↓ Decreases" for v in sv_flat],
             }).reindex(pd.Series(np.abs(sv_flat)).sort_values(ascending=False).index)
+
+            active_features = feat_imp[np.abs(feat_imp["SHAP Value"]) > 0.001].head(3)
+            if len(active_features) > 0:
+                details = []
+                for _, row in active_features.iterrows():
+                    direction = "increased the outcome" if row['SHAP Value'] > 0 else "decreased the outcome"
+                    details.append(f"**{row['Feature']}** ({direction})")
+                
+                if len(details) == 1:
+                    reasons = details[0]
+                elif len(details) == 2:
+                    reasons = f"{details[0]} and {details[1]}"
+                else:
+                    reasons = f"{details[0]}, followed by {details[1]}, and {details[2]}"
+                
+                pred_label_str = band if task_type == 'regression' else label
+                explanation_html = f"<div style='background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.3); padding:1.2rem; border-radius:12px; color:#E0F2FE; margin-bottom:1.5rem; line-height:1.6; font-size:0.9rem;'><strong style='color:#38BDF8;font-size:1.05rem;'><svg viewBox='0 0 24 24' style='width:18px;height:18px;vertical-align:-3px;margin-right:6px;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'></circle><line x1='12' y1='16' x2='12' y2='12'></line><line x1='12' y1='8' x2='12.01' y2='8'></line></svg>AI Explanation</strong><br><br>The model predicted <strong>{pred_label_str}</strong>. Based on SHAP analysis, the most significant factors driving this specific prediction were {reasons}.</div>"
+                st.markdown(explanation_html, unsafe_allow_html=True)
 
             st.markdown("""
             <div class="shap-panel">

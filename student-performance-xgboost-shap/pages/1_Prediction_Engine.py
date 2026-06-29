@@ -26,72 +26,53 @@ st.markdown("""
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 
 .stApp {
-    background-color: #060818;
+    background-color: #0B0F19;
     min-height: 100vh;
 }
 
 [data-testid="stSidebar"] {
-    background: rgba(6,8,24,0.9) !important;
-    border-right: 1px solid rgba(99,102,241,0.18) !important;
-    backdrop-filter: blur(20px);
+    background: #070A13 !important;
+    border-right: 1px solid #1E293B !important;
 }
-[data-testid="stSidebar"] * { color: #cbd5e1 !important; }
+[data-testid="stSidebar"] * { color: #94A3B8 !important; }
 [data-testid="stSidebar"] .stSelectbox > div > div {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1px solid rgba(99,102,241,0.3) !important;
+    background: #111827 !important;
+    border: 1px solid #1E293B !important;
+    color: #F1F5F9 !important;
 }
 [data-testid="stSidebar"] .stSlider > div > div > div {
-    background: linear-gradient(90deg, #4f46e5, #7c3aed) !important;
+    background: #06B6D4 !important;
 }
 
 /* Nav */
-[data-testid="stSidebarNav"] a { border-radius: 10px !important; margin: 2px 0 !important; transition: background 0.2s !important; }
-[data-testid="stSidebarNav"] a:hover { background: rgba(99,102,241,0.15) !important; }
+[data-testid="stSidebarNav"] { padding-top: 1rem; }
+[data-testid="stSidebarNav"] a { border-radius: 8px !important; margin: 4px 0 !important; transition: background 0.15s, color 0.15s !important; }
+[data-testid="stSidebarNav"] a:hover { background: #111827 !important; color: #F1F5F9 !important; }
 [data-testid="stSidebarNav"] a[aria-current="page"] {
-    background: linear-gradient(90deg, rgba(99,102,241,0.25), rgba(168,85,247,0.15)) !important;
-    border-left: 3px solid #818cf8 !important;
+    background: #1E293B !important;
+    border-left: 3px solid #06B6D4 !important;
+    color: #F8FAFC !important;
 }
 
-h1, h2, h3, h4 { color: #f1f5f9 !important; }
-p { color: #94a3b8; line-height: 1.7; }
+h1, h2, h3, h4 { color: #F8FAFC !important; }
+p { color: #94A3B8; line-height: 1.7; }
 
 /* ── Page header ─────────────────────────── */
 .page-header {
-    background: linear-gradient(135deg, rgba(79,70,229,0.18) 0%, rgba(124,58,237,0.10) 50%, rgba(6,8,24,0) 100%);
-    border: 1px solid rgba(99,102,241,0.28);
-    border-top: 1px solid rgba(129,140,248,0.4);
-    border-radius: 20px;
+    background: #111827;
+    border: 1px solid #1E293B;
+    border-top: 1px solid #334155;
+    border-radius: 16px;
     padding: 2rem 2.4rem;
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 1px 0 rgba(129,140,248,0.15) inset, 0 20px 60px rgba(79,70,229,0.08);
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    text-align: center;
 }
-.page-header::before {
-    content: '';
-    position: absolute;
-    top: -40px; right: -40px;
-    width: 180px; height: 180px;
-    background: radial-gradient(circle, rgba(168,85,247,0.15), transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
-}
-.page-header-tag {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #818cf8;
-    margin-bottom: 0.6rem;
-}
-.page-header h1 {
-    font-size: 1.9rem !important;
-    font-weight: 800 !important;
-    color: #f1f5f9 !important;
-    margin: 0 0 0.5rem 0 !important;
-    letter-spacing: -0.02em;
-}
-.page-header p { color: #94a3b8; font-size: 0.9rem; margin: 0; }
+.page-header-tag { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #38BDF8; margin-bottom: 0.6rem; font-family: 'JetBrains Mono', monospace; }
+.page-header h1  { font-size: 1.8rem !important; font-weight: 800 !important; color: #F8FAFC !important; margin: 0 0 0.5rem 0 !important; letter-spacing: -0.02em; }
+.page-header p   { color: #94A3B8; font-size: 0.9rem; margin: 0; }
 
 /* ── Dataset selector pill ───────────────── */
 .ds-pill {
@@ -107,25 +88,24 @@ p { color: #94a3b8; line-height: 1.7; }
     margin-bottom: 1.5rem;
     font-family: 'JetBrains Mono', monospace;
 }
-.pill-uci   { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.35); color: #34d399; }
-.pill-xapi  { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.35); color: #60a5fa; }
-.pill-oulad { background: rgba(251,146,60,0.12); border: 1px solid rgba(251,146,60,0.35); color: #fb923c; }
+.pill-uci   { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); color: #34D399; }
+.pill-xapi  { background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3); color: #38BDF8; }
+.pill-oulad { background: rgba(251,146,60,0.1); border: 1px solid rgba(251,146,60,0.3); color: #FBBF24; }
 
 /* ── Result card ─────────────────────────── */
 .result-card {
-    background: linear-gradient(160deg, rgba(79,70,229,0.07) 0%, rgba(15,10,40,0.6) 60%);
-    border: 1px solid rgba(99,102,241,0.2);
-    border-radius: 20px;
+    background: #111827;
+    border: 1px solid #1E293B;
+    border-radius: 16px;
     padding: 1.8rem;
     height: 100%;
-    box-shadow: 0 0 0 0.5px rgba(99,102,241,0.1) inset;
 }
 .result-card-title {
     font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #818cf8;
+    color: #38BDF8;
     margin-bottom: 1.4rem;
     display: flex;
     align-items: center;
@@ -135,36 +115,27 @@ p { color: #94a3b8; line-height: 1.7; }
     content: '';
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, rgba(99,102,241,0.3), transparent);
+    background: #1E293B;
 }
 
 /* ── Outcome display ─────────────────────── */
 .outcome-display {
     text-align: center;
-    padding: 2rem 1rem 1.6rem;
-    border-radius: 18px;
+    padding: 1.8rem 1rem;
+    border-radius: 12px;
     margin-bottom: 1.4rem;
-    position: relative;
-    overflow: hidden;
+    border: 1px solid transparent;
 }
-.outcome-display::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 50%; transform: translateX(-50%);
-    width: 60%; height: 1px;
-    background: currentColor;
-    opacity: 0.3;
-}
-.outcome-label  { font-size: 1.65rem; font-weight: 900; display: block; margin-bottom: 0.35rem; letter-spacing: -0.02em; }
-.outcome-sub    { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.6; }
-.out-high        { background: rgba(52,211,153,0.1);  border: 1px solid rgba(52,211,153,0.3);  box-shadow: 0 8px 30px rgba(52,211,153,0.08); }
-.out-high .outcome-label  { color: #34d399; text-shadow: 0 0 20px rgba(52,211,153,0.4); }
-.out-medium      { background: rgba(96,165,250,0.1);  border: 1px solid rgba(96,165,250,0.3);  box-shadow: 0 8px 30px rgba(96,165,250,0.08); }
-.out-medium .outcome-label { color: #60a5fa; text-shadow: 0 0 20px rgba(96,165,250,0.4); }
-.out-low         { background: rgba(251,113,133,0.1); border: 1px solid rgba(251,113,133,0.3); box-shadow: 0 8px 30px rgba(251,113,133,0.08); }
-.out-low .outcome-label   { color: #fb7185; text-shadow: 0 0 20px rgba(251,113,133,0.4); }
-.out-distinction { background: rgba(251,191,36,0.1);  border: 1px solid rgba(251,191,36,0.3);  box-shadow: 0 8px 30px rgba(251,191,36,0.08); }
-.out-distinction .outcome-label { color: #fbbf24; text-shadow: 0 0 20px rgba(251,191,36,0.4); }
+.outcome-label  { font-size: 1.5rem; font-weight: 800; display: block; margin-bottom: 0.35rem; font-family: 'JetBrains Mono', monospace; }
+.outcome-sub    { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; }
+.out-high        { background: #064E3B; border-color: #059669; color: #34D399; }
+.out-high .outcome-label  { color: #34D399; }
+.out-medium      { background: #1E3A8A; border-color: #2563EB; color: #60A5FA; }
+.out-medium .outcome-label { color: #60A5FA; }
+.out-low         { background: #7F1D1D; border-color: #DC2626; color: #F87171; }
+.out-low .outcome-label   { color: #F87171; }
+.out-distinction { background: #78350F; border-color: #D97706; color: #FBBF24; }
+.out-distinction .outcome-label { color: #FBBF24; }
 
 /* ── Confidence bars ─────────────────────── */
 .conf-section-label {
@@ -172,7 +143,7 @@ p { color: #94a3b8; line-height: 1.7; }
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #475569;
+    color: #64748B;
     margin-bottom: 0.8rem;
 }
 .conf-item { margin-bottom: 0.7rem; }
@@ -181,36 +152,35 @@ p { color: #94a3b8; line-height: 1.7; }
     justify-content: space-between;
     margin-bottom: 0.3rem;
 }
-.conf-name { color: #94a3b8; font-size: 0.8rem; font-weight: 500; }
-.conf-pct  { color: #e2e8f0; font-size: 0.8rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.conf-name { color: #94A3B8; font-size: 0.8rem; font-weight: 500; }
+.conf-pct  { color: #F1F5F9; font-size: 0.8rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
 .conf-track {
-    height: 7px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 100px;
+    height: 6px;
+    background: #1E293B;
+    border-radius: 3px;
     overflow: hidden;
 }
 .conf-fill {
     height: 100%;
-    border-radius: 100px;
-    background: linear-gradient(90deg, #4f46e5, #a855f7);
+    border-radius: 3px;
+    background: #06B6D4;
     transition: width 0.5s ease;
 }
 
 /* ── SHAP panel ─────────────────────────── */
 .shap-panel {
-    background: rgba(10,8,35,0.7);
-    border: 1px solid rgba(99,102,241,0.15);
-    border-radius: 20px;
+    background: #111827;
+    border: 1px solid #1E293B;
+    border-radius: 16px;
     padding: 1.8rem;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
     margin-bottom: 1.5rem;
 }
 .shap-panel-title {
     font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #818cf8;
+    color: #38BDF8;
     margin-bottom: 0.6rem;
     display: flex;
     align-items: center;
@@ -220,7 +190,7 @@ p { color: #94a3b8; line-height: 1.7; }
     content: '';
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, rgba(99,102,241,0.3), transparent);
+    background: #1E293B;
 }
 .shap-legend {
     display: flex;
@@ -228,7 +198,7 @@ p { color: #94a3b8; line-height: 1.7; }
     margin-bottom: 1.2rem;
     flex-wrap: wrap;
 }
-.legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: #64748b; }
+.legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #cbd5e1; }
 .legend-swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
 
 /* ── Icon system ─────────────────────────── */
@@ -254,24 +224,24 @@ p { color: #94a3b8; line-height: 1.7; }
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 52px; height: 52px;
-    border-radius: 14px;
+    width: 44px; height: 44px;
+    border-radius: 8px;
     margin: 0 auto 0.9rem;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
 }
 .outcome-icon svg {
-    width: 24px; height: 24px;
+    width: 20px; height: 20px;
     stroke: currentColor;
     stroke-width: 1.75;
     stroke-linecap: round;
     stroke-linejoin: round;
     fill: none;
 }
-.out-high        .outcome-icon { background: rgba(52,211,153,0.12);  border-color: rgba(52,211,153,0.25);  color: #34d399; }
-.out-medium      .outcome-icon { background: rgba(96,165,250,0.12);  border-color: rgba(96,165,250,0.25);  color: #60a5fa; }
-.out-low         .outcome-icon { background: rgba(251,113,133,0.12); border-color: rgba(251,113,133,0.25); color: #fb7185; }
-.out-distinction .outcome-icon { background: rgba(251,191,36,0.12);  border-color: rgba(251,191,36,0.25);  color: #fbbf24; }
+.out-high   .outcome-icon { color: #34D399; }
+.out-medium .outcome-icon { color: #60A5FA; }
+.out-low    .outcome-icon { color: #F87171; }
+.out-distinction .outcome-icon { color: #FBBF24; }
 
 /* ── Conf name icon ─────────────────────── */
 .conf-name-icon {
@@ -291,7 +261,7 @@ p { color: #94a3b8; line-height: 1.7; }
 }
 .section-icon svg {
     width: 13px; height: 13px;
-    stroke: #818cf8; stroke-width: 2;
+    stroke: #38BDF8; stroke-width: 2;
     stroke-linecap: round; stroke-linejoin: round; fill: none;
 }
 
@@ -301,28 +271,38 @@ p { color: #94a3b8; line-height: 1.7; }
 }
 .header-icon svg {
     width: 12px; height: 12px;
-    stroke: #818cf8; stroke-width: 2.25;
+    stroke: #38BDF8; stroke-width: 2.25;
     stroke-linecap: round; stroke-linejoin: round; fill: none;
 }
 
 /* ── Streamlit widget overrides ─────────────────────────── */
-.stSelectbox label, .stSlider label, .stMultiSelect label {
-    color: #94a3b8 !important;
+.stSelectbox label, .stSlider label, .stMultiSelect label, .stCheckbox label {
+    color: #94A3B8 !important;
     font-size: 0.82rem !important;
     font-weight: 500 !important;
 }
-.stProgress > div > div { background: linear-gradient(90deg, #4f46e5, #a855f7) !important; }
-.stDataFrame { border-radius: 12px; overflow: hidden; }
+.stProgress > div > div { background: #06B6D4 !important; }
+.stDataFrame { border-radius: 8px; overflow: hidden; border: 1px solid #1E293B; }
+.stSlider > div > div > div {
+    background: #06B6D4 !important;
+}
 
 /* Sidebar expander */
 [data-testid="stExpander"] {
-    background: rgba(255,255,255,0.02) !important;
-    border: 1px solid rgba(255,255,255,0.07) !important;
-    border-radius: 12px !important;
+    background: #111827 !important;
+    border: 1px solid #1E293B !important;
+    border-radius: 8px !important;
     margin-bottom: 0.5rem !important;
 }
-[data-testid="stExpander"] summary { color: #c7d2fe !important; font-weight: 700 !important; font-size: 0.86rem !important; }
-[data-testid="stExpander"] > div > div { border-top: 1px solid rgba(99,102,241,0.12) !important; }
+[data-testid="stExpander"] summary { color: #F1F5F9 !important; font-weight: 700 !important; font-size: 0.86rem !important; }
+[data-testid="stExpander"] > div > div { border-top: 1px solid #1E293B !important; }
+
+/* Make SHAP force plot iframe legible with a white background */
+iframe {
+    background-color: #ffffff !important;
+    border-radius: 12px;
+    padding: 10px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -699,23 +679,27 @@ def _render_feature(feature, suffix=""):
     return None
 
 
-user_input = {}
-half = len(raw_features) // 2
+with st.form("prediction_form", border=False):
+    user_input = {}
+    half = len(raw_features) // 2
 
-prof_col1, prof_col2 = st.columns(2, gap="large")
-with prof_col1:
-    with st.expander("Academic & Demographics", expanded=True):
-        for feature in raw_features[:half]:
-            val = _render_feature(feature)
-            if val is not None:
-                user_input[feature] = val
+    prof_col1, prof_col2 = st.columns(2, gap="large")
+    with prof_col1:
+        with st.expander("Academic & Demographics", expanded=True):
+            for feature in raw_features[:half]:
+                val = _render_feature(feature)
+                if val is not None:
+                    user_input[feature] = val
 
-with prof_col2:
-    with st.expander("Behavioural & Engagement", expanded=True):
-        for feature in raw_features[half:]:
-            val = _render_feature(feature, suffix="_b")
-            if val is not None:
-                user_input[feature] = val
+    with prof_col2:
+        with st.expander("Behavioural & Engagement", expanded=True):
+            for feature in raw_features[half:]:
+                val = _render_feature(feature, suffix="_b")
+                if val is not None:
+                    user_input[feature] = val
+    
+    st.markdown("<div style='height: 0.5rem'></div>", unsafe_allow_html=True)
+    st.form_submit_button("Run Prediction 🚀", type="primary", use_container_width=True)
 
 
 # ── Preprocessing ─────────────────────────────────────────────────────────────
@@ -907,6 +891,24 @@ try:
         })
         .iloc[pd.Series(np.abs(sv_flat)).sort_values(ascending=False).index]
     )
+
+    active_features = feat_imp[np.abs(feat_imp["SHAP Value"]) > 0.001].head(3)
+    if len(active_features) > 0:
+        details = []
+        for _, row in active_features.iterrows():
+            direction = "increased the outcome" if row['SHAP Value'] > 0 else "decreased the outcome"
+            details.append(f"**{row['Feature']}** ({direction})")
+        
+        if len(details) == 1:
+            reasons = details[0]
+        elif len(details) == 2:
+            reasons = f"{details[0]} and {details[1]}"
+        else:
+            reasons = f"{details[0]}, followed by {details[1]}, and {details[2]}"
+        
+        pred_label_str = band if task_type == 'regression' else label
+        explanation_html = f"<div style='background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.3); padding:1.2rem; border-radius:12px; color:#E0F2FE; margin-bottom:1.5rem; line-height:1.6; font-size:0.9rem;'><strong style='color:#38BDF8;font-size:1.05rem;'><svg viewBox='0 0 24 24' style='width:18px;height:18px;vertical-align:-3px;margin-right:6px;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'></circle><line x1='12' y1='16' x2='12' y2='12'></line><line x1='12' y1='8' x2='12.01' y2='8'></line></svg>AI Explanation</strong><br><br>The model predicted <strong>{pred_label_str}</strong>. Based on SHAP analysis, the most significant factors driving this specific prediction were {reasons}.</div>"
+        st.markdown(explanation_html, unsafe_allow_html=True)
 
     st.markdown("""
     <div class="shap-panel">
